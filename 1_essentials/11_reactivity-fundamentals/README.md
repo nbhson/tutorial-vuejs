@@ -219,3 +219,113 @@ const c = Math.random()
 
 > -   Trong Options API: Vue đoán giúp bạn.
 > -   Trong Composition API: bạn nói rõ với Vue.
+
+---
+
+## ⚡ Vue 3.4+ / 3.5+: Compiler Macros & Reactive Props Destructure
+
+> 🔗 Tham khảo chính thức: [Reactivity Fundamentals](https://vuejs.org/guide/essentials/reactivity-fundamentals.html) • [script setup](https://vuejs.org/api/sfc-script-setup.html)
+
+Từ Vue 3.4/3.5, `<script setup>` cung cấp sẵn các **compiler macros** — các hàm do compiler hiểu và dịch ra, **không cần import**:
+
+### 1️⃣ `defineProps()` / `defineEmits()` (compiler macro, không cần import)
+
+```vue
+<script setup lang="ts">
+// ❌ Không cần: import { defineProps, defineEmits } from 'vue'
+// ✅ Compiler tự biết đây là macro
+
+// Kiểu "type-only" — TypeScript-only, hiệu năng tốt hơn (Vue 3.3+)
+const props = defineProps<{
+  title: string
+  likes?: number
+}>()
+
+const emit = defineEmits<{
+  (e: 'change', id: number): void
+  (e: 'update', value: string): void
+}>()
+</script>
+```
+
+📌 Lưu ý:
+- `defineProps` và `defineEmits` **chỉ dùng được trong `<script setup>`**.
+- Props/emit nhận được luôn là **reactive** (Vue tự wrap reactive giúp bạn — đúng tinh thần "Vue làm thay").
+
+### 2️⃣ `withDefaults()` — default props cho kiểu type-only (Vue 3.3+, dùng được tới hiện tại)
+
+```ts
+const props = withDefaults(
+  defineProps<{ title?: string; items?: string[] }>(),
+  { title: 'Hello', items: () => [] }
+)
+```
+
+> 👉 Từ **Vue 3.5**, cách gọn hơn là **reactive props destructure** (xem dưới) — không cần `withDefaults` nữa, nhưng nó vẫn hoạt động cho code cũ.
+
+### 3️⃣ `defineModel()` — two-way binding trong 1 dòng (ổn định từ Vue 3.4)
+
+```vue
+<script setup>
+const model = defineModel() // thay cho props + emit('update:modelValue')
+</script>
+
+<template>
+  <input v-model="model" />
+</template>
+```
+
+Trước Vue 3.4 phải viết tay:
+```js
+const props = defineProps(['modelValue'])
+const emit = defineEmits(['update:modelValue'])
+```
+👉 `defineModel()` gói cả props + emit + đồng bộ 2 chiều.
+
+### 4️⃣ `defineSlots()` / `defineExpose()`
+
+```ts
+// defineSlots() — khai báo type cho slots (Vue 3.3+)
+const slots = defineSlots<{
+  default(props: { item: string }): any
+  header?: (props: Record<string, never>) => any
+}>()
+
+// defineExpose() — chủ động expose property cho parent (dùng với template refs)
+defineExpose({ publicMethod, publicData })
+```
+
+### 5️⃣ Reactive Props Destructure (ổn định từ Vue 3.5) ⭐
+
+Trước đây, destructure props là **mất reactivity** (giống destructure object `reactive`). Từ Vue 3.5, compiler tự dịch biến destructured thành `props.xxx` nên **vẫn reactive**:
+
+```vue
+<script setup>
+// Vue 3.5+: destructured props giữ nguyên tính phản ứng
+const { title, likes = 0 } = defineProps(['title', 'likes'])
+
+watchEffect(() => {
+  // Vue 3.5+: tự dịch thành props.title — vẫn reactive ✅
+  console.log(title)
+})
+</script>
+```
+
+⚠️ **Lưu ý quan trọng** (giống phần hạn chế của `reactive()` ở trên):
+- ❌ Không watch trực tiếp biến destructured: `watch(title, ...)` — sai.
+- ✅ Phải watch dạng getter: `watch(() => title, ...)`.
+- Deconstruct rồi **truyền vào hàm** cũng sẽ mất reactivity nếu truyền giá trị thô: dùng `() => title`.
+
+📌 Kể từ 3.5 không cần bật flag `propsDestructure: true` trong compiler options — tính năng này **bật mặc định**.
+
+### 6️⃣ Bảng tóm tắt macros trong `<script setup>`
+
+| Macro | Phiên bản ổn định | Mục đích |
+| :--- | :--- | :--- |
+| `defineProps()` | 3.0+ (macro từ đầu) | Khai báo props |
+| `defineEmits()` | 3.0+ | Khai báo events |
+| `defineExpose()` | 3.0+ | Expose public API qua template refs |
+| `withDefaults()` | 3.0+ | Default cho type-only props |
+| `defineSlots()` | 3.3+ | Khai báo type cho slots |
+| `defineModel()` | **ổn định từ 3.4** | Two-way binding ngắn gọn |
+| Reactive props destructure | **ổn định từ 3.5** (mặc định bật) | Destructure props vẫn reactive |
