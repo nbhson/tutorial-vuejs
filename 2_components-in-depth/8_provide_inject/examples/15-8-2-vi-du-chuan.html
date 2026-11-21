@@ -1,0 +1,14 @@
+<script setup>
+import { ref, provide } from 'vue'
+
+const location = ref('North Pole')
+
+function updateLocation() {
+  location.value = 'South Pole'
+}
+
+provide('location', {
+  location,
+  updateLocation
+})
+</script>

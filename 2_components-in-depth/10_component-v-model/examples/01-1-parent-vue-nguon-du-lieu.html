@@ -1,0 +1,11 @@
+<script setup>
+import { ref } from 'vue'
+import Child1 from './Child1.vue'
+
+const count = ref(0)
+</script>
+
+<template>
+  <h2>Parent: {{ count }}</h2>
+  <Child1 v-model="count" />
+</template>

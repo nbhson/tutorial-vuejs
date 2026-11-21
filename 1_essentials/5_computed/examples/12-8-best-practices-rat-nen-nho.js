@@ -1,0 +1,4 @@
+computed(() => {
+  fetch(...)
+  count.value++
+})

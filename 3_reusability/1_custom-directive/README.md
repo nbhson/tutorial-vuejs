@@ -1,10 +1,12 @@
 # Custom Directives trong Vue 3: Tóm tắt Đầy đủ & Dễ hiểu
 
-Dưới đây là bản tóm tắt đầy đủ – chi tiết – dễ hiểu nội dung bài **Custom Directives** (Chỉ thị tùy chỉnh) trong Vue 3, kèm ví dụ cho từng phần. 📘
+Bài này đi qua toàn bộ về **Custom Directives** (Chỉ thị tùy chỉnh) trong Vue 3: khi nào nên dùng, cách khai báo, vòng đời hooks, và những lưu ý quan trọng — kèm ví dụ cho từng phần.
 
 ---
 
 ## 1. Custom Directives là gì?
+
+Mục này định nghĩa "công cụ cầm tay DOM": directive là điểm chạm trực tiếp vào phần tử DOM — thứ mà component và composable đều khó chạm được một cách tự nhiên, giống như một cặp kề chuyên dụng trong hộp đồ nghề.
 
 Ngoài các directive có sẵn như `v-model`, `v-show`, `v-if`, Vue cho phép bạn tạo directive riêng gọi là **Custom Directives**.
 
@@ -20,9 +22,13 @@ Custom directives dùng để tái sử dụng logic **thao tác DOM trực ti�
 | **Composable** | Tái sử dụng logic (state, reactivity) |
 | **Custom Directive** | Tái sử dụng các thao tác trên DOM (DOM manipulation) |
 
+> **Cách đọc bảng này:** ba hàng là ba "loại kìm trong hộp đồ nghề", xếp theo tầng tác động — UI, logic, rồi DOM. Nhìn cột Mục đích để chọn đúng kìm cho đúng việc.
+
 ---
 
 ## 2. Khi nào nên dùng Custom Directives?
+
+Mục này là "hướng dẫn chọn nghề" cho directive: dùng khi phải đụng DOM trực tiếp, tránh khi binding/component/composable giải quyết được.
 
 ✅ **NÊN dùng khi:**
 - Cần thao tác trực tiếp với phần tử DOM (ví dụ: tập trung tiêu điểm, vẽ canvas, quan sát kích thước).
@@ -34,98 +40,51 @@ Custom directives dùng để tái sử dụng logic **thao tác DOM trực ti�
 
 **Ví dụ điển hình: Tự động focus input**
 
-```html
-<script setup>
-// Định nghĩa directive v-focus
-const vFocus = {
-  mounted(el) {
-    el.focus()
-  }
-}
-</script>
-
-<template>
-  <input v-focus />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/01-2-khi-nao-nen-dung-custom-directives.html`](examples/01-2-khi-nao-nen-dung-custom-directives.html)
 
 > [!TIP]
 > Directive này tốt hơn thuộc tính `autofocus` thuần vì nó hoạt động chính xác ngay cả khi phần tử được render động (v-if) hoặc di chuyển trong DOM.
+
+> **Tóm gọn 1 câu:** Directive là "túi đồ nghề riêng cho DOM" — cần gắn sự vụ trực tiếp lên element thì dùng, có cách khác thì đừng lạm dụng.
 
 ---
 
 ## 3. Cách khai báo Custom Directive
 
+Mục này nói về ba cách đăng ký: trong `<script setup>`, cục bộ và toàn cục — tương tự như cách đăng ký component mà bạn đã quen.
+
 ### 3.1. Khai báo trong `<script setup>`
 📌 Bất kỳ biến nào theo chuẩn **camelCase** bắt đầu bằng chữ `v` đều được Vue hiểu là một directive.
 
-```html
-<script setup>
-const vHighlight = {
-  mounted(el) {
-    el.classList.add('is-highlight')
-  }
-}
-</script>
-
-<template>
-  <p v-highlight>Nội dung quan trọng</p>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/02-3-1-khai-bao-trong-script-setup.html`](examples/02-3-1-khai-bao-trong-script-setup.html)
 *📌 `vHighlight` trong script → được sử dụng dưới dạng `v-highlight` trong template.*
 
 ### 3.2. Đăng ký directive cục bộ (Local)
 Dùng trong Options API:
 
-```js
-export default {
-  directives: {
-    highlight: {
-      mounted(el) {
-        el.classList.add('is-highlight')
-      }
-    }
-  }
-}
-```
+> 📄 **Code ví dụ:** [`examples/03-3-2-ang-ky-directive-cuc-bo-local.js`](examples/03-3-2-ang-ky-directive-cuc-bo-local.js)
 
 ### 3.3. Đăng ký directive toàn cục (Global)
 Gắn trực tiếp vào instance của ứng dụng:
 
-```js
-import { createApp } from 'vue'
-
-const app = createApp({})
-
-app.directive('highlight', {
-  mounted(el) {
-    el.classList.add('is-highlight')
-  }
-})
-```
+> 📄 **Code ví dụ:** [`examples/04-3-3-ang-ky-directive-toan-cuc-global.js`](examples/04-3-3-ang-ky-directive-toan-cuc-global.js)
 📌 Sau khi đăng ký global, `v-highlight` có thể dùng được ở mọi component trong toàn bộ ứng dụng.
 
 ---
 
 ## 4. Directive Hooks (Vòng đời của directive)
 
+Mục này nói về "vòng đời" của directive: giống component có mounted/unmounted, directive có chuỗi hook tương ứng — mỗi hook là một thời điểm bạn được chạm vào element.
+
 Một directive là một object chứa các hook tương tự như lifecycle của component.
 
-```js
-const myDirective = {
-  created(el, binding, vnode, prevVnode) {}, // Trước khi các attribute được áp dụng
-  beforeMount(el, binding, vnode, prevVnode) {}, // Trước khi gắn vào DOM
-  mounted(el, binding, vnode, prevVnode) {}, // Đã gắn vào DOM (Thường dùng nhất)
-  beforeUpdate(el, binding, vnode, prevVnode) {}, // Trước khi element cập nhật
-  updated(el, binding, vnode, prevVnode) {}, // Sau khi element đã cập nhật xong (Thường dùng nhất)
-  beforeUnmount(el, binding, vnode, prevVnode) {}, // Trước khi tháo khỏi DOM
-  unmounted(el, binding, vnode, prevVnode) {} // Đã tháo khỏi DOM hoàn toàn
-}
-```
+> 📄 **Code ví dụ:** [`examples/05-4-directive-hooks-vong-oi-cua-directive.js`](examples/05-4-directive-hooks-vong-oi-cua-directive.js)
 
 ---
 
 ## 5. Tham số trong Directive Hook
+
+Mục này nói về "hành trang" mà mỗi hook nhận vào: `el` là phần tử thật, `binding` là hồ sơ chỉ thị, `vnode` là bản dựng ảo — hiểu ba món này là đọc được mọi directive.
 
 Mỗi hook nhận các tham số sau:
 - **`el`**: Phần tử DOM thực tế.
@@ -140,80 +99,55 @@ Mỗi hook nhận các tham số sau:
 | **`modifiers`** | Các công cụ sửa đổi (ví dụ: trong `v-my-dir.bar`, modifiers là `{ bar: true }`) |
 | **`instance`** | Instance của component sử dụng directive này |
 
+> **Cách đọc bảng này:** mỗi dòng là một "ngăn trong hồ sơ `binding`" — đọc kèm ví dụ ngay trong cột Ý nghĩa để thấy cú pháp template tương ứng ra giá trị gì.
+
 **Ví dụ:**
-```html
-<div v-example:foo.bar="baz"></div>
-```
+> 📄 **Code ví dụ:** [`examples/06-5-tham-so-trong-directive-hook.html`](examples/06-5-tham-so-trong-directive-hook.html)
 Kết quả của `binding`:
-```js
-{
-  arg: 'foo',
-  modifiers: { bar: true },
-  value: baz, // giá trị của biến baz
-  oldValue: ... 
-}
-```
+> 📄 **Code ví dụ:** [`examples/07-5-tham-so-trong-directive-hook.js`](examples/07-5-tham-so-trong-directive-hook.js)
 
 ---
 
 ## 6. Directive có Argument & Modifier
 
+Mục này nói về "phụ kiện" của directive: argument (`:foo`) chọn mục tiêu con, modifier (`.bar`) bật công tắc tùy chọn — như đèn có thể thêm chỉ định "bóng nào" và "chế độ nào".
+
 ### Argument (Tham số)
-```html
-<div v-color:red></div>
-```
-```js
-mounted(el, binding) {
-  console.log(binding.arg) // 'red'
-}
-```
+> 📄 **Code ví dụ:** [`examples/08-argument-tham-so.html`](examples/08-argument-tham-so.html)
+> 📄 **Code ví dụ:** [`examples/09-argument-tham-so.js`](examples/09-argument-tham-so.js)
 
 ### Modifier (Công cụ sửa đổi)
-```html
-<div v-demo.large.bold></div>
-```
-```js
-mounted(el, binding) {
-  console.log(binding.modifiers) // { large: true, bold: true }
-}
-```
+> 📄 **Code ví dụ:** [`examples/10-modifier-cong-cu-sua-oi.html`](examples/10-modifier-cong-cu-sua-oi.html)
+> 📄 **Code ví dụ:** [`examples/11-modifier-cong-cu-sua-oi.js`](examples/11-modifier-cong-cu-sua-oi.js)
 
 ---
 
 ## 7. Directive với Function Shorthand
 
+Mục này nói về "cú viết tắt": nếu mounted và updated làm cùng một việc, viết directive thành một hàm duy nhất — Vue tự hiểu cho cả hai thời điểm.
+
 Nếu bạn chỉ cần xử lý cho 2 hook `mounted` và `updated` với cùng một logic, bạn có thể viết ngắn gọn:
 
-```js
-app.directive('color', (el, binding) => {
-  // Logic này sẽ chạy cho cả mounted và updated
-  el.style.color = binding.value
-})
-```
+> 📄 **Code ví dụ:** [`examples/12-7-directive-voi-function-shorthand.js`](examples/12-7-directive-voi-function-shorthand.js)
 Cách dùng:
-```html
-<div v-color="'red'"></div>
-```
+> 📄 **Code ví dụ:** [`examples/13-7-directive-voi-function-shorthand.html`](examples/13-7-directive-voi-function-shorthand.html)
 
 ---
 
 ## 8. Truyền nhiều giá trị bằng Object Literal
 
+Mục này nói về cách "gửi cả kiện hàng" cho directive: thay vì một giá trị lẻ, truyền nguyên object nhiều trường dữ liệu.
+
 Bạn có thể truyền một object phức tạp nếu cần nhiều tham số.
 
-```html
-<div v-demo="{ color: 'white', text: 'hello' }"></div>
-```
-```js
-app.directive('demo', (el, binding) => {
-  el.style.color = binding.value.color
-  el.textContent = binding.value.text
-})
-```
+> 📄 **Code ví dụ:** [`examples/14-8-truyen-nhieu-gia-tri-bang-object-literal.html`](examples/14-8-truyen-nhieu-gia-tri-bang-object-literal.html)
+> 📄 **Code ví dụ:** [`examples/15-8-truyen-nhieu-gia-tri-bang-object-literal.js`](examples/15-8-truyen-nhieu-gia-tri-bang-object-literal.js)
 
 ---
 
 ## 9. Sử dụng directive trên Component
+
+Mục này là "cảnh báo đỏ" của bài: directive gắn lên component thì chỉ dính root element và dễ rơi vào ngõ cụt — nên hạn chế, ưu tiên dùng cho thẻ HTML thuần.
 
 > [!CAUTION]
 > **KHÔNG KHUYẾN KHÍCH** sử dụng custom directive trên component.
@@ -229,17 +163,19 @@ app.directive('demo', (el, binding) => {
 
 ## 10. Ghi chú quan trọng
 
+Mục này nói về quy tắc "chỉ đọc": `binding`, `vnode`, `instance` là hồ sơ Vue đưa cho bạn xem — sửa chúng là phá máy móc; muốn lưu gì thì lưu trên element.
+
 > [!WARNING]
 > Tuyệt đối **không được chỉnh sửa** trực tiếp các tham số `binding`, `vnode`, hoặc `instance`. Chúng nên được coi là chỉ đọc (read-only).
 
 ✅ Nếu bạn cần lưu trữ dữ liệu giữa các hook khác nhau, hãy sử dụng thuộc tính `dataset` của DOM hoặc chính thuộc tính của phần tử `el`:
-```js
-el.dataset.myValue = '123'
-```
+> 📄 **Code ví dụ:** [`examples/16-10-ghi-chu-quan-trong.js`](examples/16-10-ghi-chu-quan-trong.js)
 
 ---
 
 ## 11. Tổng kết nhanh 🎯
+
+Mục này gom cả bài vào một bảng ghi nhớ cuối cùng.
 
 | Nội dung | Quy tắc ghi nhớ |
 | :--- | :--- |
@@ -248,3 +184,7 @@ el.dataset.myValue = '123'
 | **Hook thường dùng** | `mounted`, `updated` |
 | **Viết gọn** | Sử dụng Function shorthand nếu code `mounted` và `updated` giống nhau |
 | **Component** | ❌ Hạn chế sử dụng, ưu tiên dùng cho thẻ HTML thuần |
+
+> **Cách đọc bảng này:** dò theo hàng ngang — hàng nào trả lời đúng câu hỏi bạn đang có ("dùng khi nào?", "viết sao cho gọn?") thì áp dụng ngay.
+
+> **Tóm gọn 1 câu:** Custom directive là "cặp kề chuyên dụng cho DOM" — dùng đúng việc thì sắc bén, dùng nhầm chỗ (component) thì vụng về.

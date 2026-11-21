@@ -1,0 +1,9 @@
+<script setup>
+const isMobile = ref(window.innerWidth < 768)
+</script>
+
+<template>
+  <Teleport :disabled="isMobile" to="body">
+    <div class="modal">Nội dung...</div>
+  </Teleport>
+</template>

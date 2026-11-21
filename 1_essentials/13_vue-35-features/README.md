@@ -1,5 +1,7 @@
 # Vue 3.5+ Features (Tengen Toppa Gurren Lagann)
 
+File này tổng hợp toàn bộ đồ chơi mới của Vue 3.4/3.5: cái nào tối ưu ngầm, cái nào là API mới xài được ngay. Đọc để biết công cụ nào nên đưa vào dự án của mình.
+
 Vue 3.5 (phát hành **01/09/2024**) là bản minor **không có breaking changes**, tập trung vào tối ưu hiệu năng hệ thống reactivity, SSR và một loạt API tiện dụng cho Composition API.
 
 > 🔗 Tham khảo chính thức:
@@ -23,34 +25,17 @@ Vue 3.5 refactor toàn bộ hệ thống reactivity với các kết quả:
 
 ## 2. `useTemplateRef()` — Template refs kiểu mới (Vue 3.5) ⭐
 
+Mục này nói về cách mới để "chạm tay" vào phần tử DOM trong template — thay vì phải đặt tên biến trùng khớp với attribute `ref`, giờ bạn gọi hàm và truyền tên vào.
+
 Thay vì phải khai báo một `ref()` **trùng tên** với `ref` attribute trong template (dễ gãy khi refactor, không có lỗi báo khi tên không khớp), Vue 3.5 giới thiệu `useTemplateRef()`:
 
-```vue
-<script setup>
-import { useTemplateRef, onMounted } from 'vue'
+Ví von: cách cũ giống như **dán giấy nhớ "biến này trùng tên với thẻ ref nhé"** rồi cầu mong không ai đổi tên — đổi là im lặng gãy. `useTemplateRef()` thì như **đưa danh sách có đánh số**: bạn nói đích danh "hộp nào" và Vue trả đúng hộp đó, sai tên là báo lỗi.
 
-// Tham số đầu tiên PHẢI khớp với giá trị ref trong template
-const input = useTemplateRef('my-input')
-
-onMounted(() => {
-  input.value.focus()
-})
-</script>
-
-<template>
-  <input ref="my-input" />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/01-2-usetemplateref-template-refs-kieu-moi-vue-3.vue`](examples/01-2-usetemplateref-template-refs-kieu-moi-vue-3.vue)
 
 ### So sánh với cách cũ (trước 3.5)
 
-```vue
-<!-- ❌ Cách cũ — tên biến phải trùng chính xác, sai thì ref = null mà không báo lỗi -->
-<script setup>
-import { ref, onMounted } from 'vue'
-const input = ref(null) // phải trùng tên với ref="input"
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/02-so-sanh-voi-cach-cu-truoc-3-5.vue`](examples/02-so-sanh-voi-cach-cu-truoc-3-5.vue)
 
 Ưu điểm của `useTemplateRef()`:
 - **Binding tường minh** qua tham số đầu tiên — không phụ thuộc tên biến.
@@ -61,43 +46,17 @@ const input = ref(null) // phải trùng tên với ref="input"
 
 Cách truy cập danh sách refs cho `v-for` cũng mới trong 3.5:
 
-```vue
-<script setup>
-import { ref, useTemplateRef, onMounted } from 'vue'
-
-const list = ref([1, 2, 3])
-const itemRefs = useTemplateRef('items')
-
-onMounted(() => console.log(itemRefs.value)) // mảng các phần tử
-</script>
-
-<template>
-  <ul>
-    <li v-for="item in list" ref="items">{{ item }}</li>
-  </ul>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/03-refs-trong-v-for-vue-3-5.vue`](examples/03-refs-trong-v-for-vue-3-5.vue)
 
 > 🔗 [Template Refs — vuejs.org](https://vuejs.org/guide/essentials/template-refs.html)
 
 ## 3. `useId()` — Sinh ID unique cho toàn app (Vue 3.5)
 
+Mục này nói về API sinh ID tự động — tưởng nhỏ xíu nhưng cứu được cả rổ lỗi trùng ID trong form và a11y.
+
 `useId()` sinh ID **duy nhất trong phạm vi app** và **ổn định giữa server render và client render** (SSR-safe) — lý tưởng cho a11y và form:
 
-```vue
-<script setup>
-import { useId } from 'vue'
-
-const id = useId()
-</script>
-
-<template>
-  <form>
-    <label :for="id">Name:</label>
-    <input :id="id" type="text" />
-  </form>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/04-3-useid-sinh-id-unique-cho-toan-app.vue`](examples/04-3-useid-sinh-id-unique-cho-toan-app.vue)
 
 Đặc điểm:
 - ID unique-per-application — an toàn kể cả khi component render nhiều lần.
@@ -112,27 +71,7 @@ Trường hợp thực dụng nhất: ghép nối `label` ↔ `input` (a11y), `a
 
 API toàn cục giúp đăng ký logic dọn dẹp chạy trước khi watcher chạy lại lần tiếp theo hoặc khi bị dispose:
 
-```js
-import { watch, onWatcherCleanup } from 'vue'
-
-watch(id, (newId) => {
-  const controller = new AbortController()
-
-  fetch(`/api/${newId}`, { signal: controller.signal })
-    .then((data) => {
-      // cập nhật data
-    })
-    .catch((e) => {
-      if (e.name !== 'AbortError') throw e
-    })
-
-  // Chạy trước khi watcher kích hoạt lần kế tiếp
-  onWatcherCleanup(() => {
-    controller.abort()
-    console.log('Hủy request cũ của id trước đó')
-  })
-})
-```
+> 📄 **Code ví dụ:** [`examples/05-4-onwatchercleanup-don-dep-watcher-vue-3-5.js`](examples/05-4-onwatchercleanup-don-dep-watcher-vue-3-5.js)
 
 👉 Thay thế cho pattern `onCleanup` trong `watch()` — dùng được trong **composables tách riêng**.
 
@@ -140,31 +79,19 @@ watch(id, (newId) => {
 
 Chi tiết đầy đủ đã có trong `11_reactivity-fundamentals/README.md`. Tóm tắt:
 
-```vue
-<script setup>
-// Bật mặc định từ 3.5 — không cần flag compiler
-const { title, likes = 0 } = defineProps(['title', 'likes'])
-// title, likes vẫn reactive (compiler dịch thành props.title, props.likes)
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/06-5-reactive-props-destructure-on-inh-tu-vue.vue`](examples/06-5-reactive-props-destructure-on-inh-tu-vue.vue)
 
 ⚠️ Nhớ: `watch(() => title, ...)` chứ không `watch(title, ...)`.
 
 ## 6. SSR: Lazy Hydration & `data-allow-mismatch` (Vue 3.5)
 
+Mục này nói về những "không khớp" giữa server và client khi render — và cách Vue 3.5 cho bạn hai công cụ để xử lý: hydrate đúng lúc và chấp nhận khác biệt có kiểm soát.
+
 ### Lazy Hydration cho async components
 
 `defineAsyncComponent()` nhận thêm option `hydrate` để kiểm soát **khi nào component mới được hydrate** trên client:
 
-```js
-import { defineAsyncComponent, hydrateOnVisible } from 'vue'
-
-const LazyComp = defineAsyncComponent({
-  loader: () => import('./HeavyChart.vue'),
-  // Chỉ hydrate khi phần tử xuất hiện trong viewport
-  hydrate: hydrateOnVisible()
-})
-```
+> 📄 **Code ví dụ:** [`examples/07-lazy-hydration-cho-async-components.js`](examples/07-lazy-hydration-cho-async-components.js)
 
 Các strategy có sẵn: `hydrateOnVisible()`, `hydrateOnInteraction()`, `hydrateOnMediaQuery()`, `hydrateOnIdle()` — giảm Time-to-Interactive đáng kể cho app lớn.
 
@@ -172,19 +99,13 @@ Các strategy có sẵn: `hydrateOnVisible()`, `hydrateOnInteraction()`, `hydrat
 
 Cho phép chấp nhận sự khác biệt giữa server/client render ở node cụ thể (ví dụ thời gian hiển thị):
 
-```html
-<span data-allow-mismatch>{{ time }}</span>
-```
+> 📄 **Code ví dụ:** [`examples/08-data-allow-mismatch.html`](examples/08-data-allow-mismatch.html)
 
 ## 7. Teleport `defer` (Vue 3.5)
 
 Props `defer` khiến Teleport mount **sau vòng render hiện tại** — giải quyết lỗi "target not found" khi target được render sau (VD: portal vào phần tử do component khác render):
 
-```vue
-<Teleport defer to="#modals">
-  <div>Modal content</div>
-</Teleport>
-```
+> 📄 **Code ví dụ:** [`examples/09-7-teleport-defer-vue-3-5.vue`](examples/09-7-teleport-defer-vue-3-5.vue)
 
 ## 8. `<script setup>` macros liên quan (Vue 3.4 — nền tảng cho 3.5)
 
@@ -221,6 +142,10 @@ Props `defer` khiến Teleport mount **sau vòng render hiện tại** — giả
 | Lazy hydration | **3.5** | SSR, tối ưu TTI |
 | Teleport `defer` | **3.5** | Teleport target render sau |
 | Vapor Mode | **3.6 alpha/beta** (chưa stable, dự kiến cuối 2026) | Thử nghiệm, theo dõi release |
+
+> **Cách đọc bảng này:** mỗi dòng một feature, cột giữa trả lời "version nào dùng được", cột phải trả lời "dùng vào việc gì". Hàng cuối (Vapor Mode) chưa stable — chỉ theo dõi, chưa đưa vào production.
+
+> **Tóm gọn 1 câu:** Vue 3.5 là bản "tăng sức mạnh ngầm": reactivity nhẹ hơn tự động, còn `useTemplateRef`, `useId`, `onWatcherCleanup`, props destructure là bốn công cụ nên đưa vào thói quen code mới.
 
 ## ✅ Checklist thực hành
 

@@ -1,0 +1,18 @@
+<script setup>
+import { shallowRef } from 'vue'
+import CompA from './CompA.vue'
+import CompB from './CompB.vue'
+
+const currentTab = shallowRef(CompA)
+const tabs = { CompA, CompB }
+</script>
+
+<template>
+  <button v-for="(_, name) in tabs" @click="currentTab = tabs[name]">
+    {{ name }}
+  </button>
+
+  <KeepAlive>
+    <component :is="currentTab" />
+  </KeepAlive>
+</template>

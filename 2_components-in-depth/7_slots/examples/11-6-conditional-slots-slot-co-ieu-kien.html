@@ -1,0 +1,15 @@
+<template>
+  <div class="card">
+    <div v-if="$slots.header">
+      <slot name="header" />
+    </div>
+
+    <div v-if="$slots.default">
+      <slot />
+    </div>
+
+    <div v-if="$slots.footer">
+      <slot name="footer" />
+    </div>
+  </div>
+</template>

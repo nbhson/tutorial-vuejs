@@ -2,7 +2,11 @@ Dưới đây là tóm tắt đầy đủ – chi tiết – dễ hiểu bài Co
 
 # 1. Conditional Rendering là gì?
 
+Mục này mở bài: giao diện không phải lúc nào cũng hiện hết mọi thứ — tùy điều kiện mà "lên sóng" hoặc "ẩn mình".
+
 Conditional Rendering cho phép Vue hiển thị hoặc ẩn một phần giao diện dựa trên điều kiện (true / false).
+
+Ví von: giống như **biển báo điện tử trên cao tốc** — điều kiện nào (kẹt xe, sương mù) thì hiện biển đó, điều kiện không còn thì biển biến mất.
 
 ➡️ Rất thường dùng cho:
 
@@ -27,22 +31,11 @@ Nếu điều kiện sai → phần tử không tồn tại trong DOM.
 
 ## Cú pháp
 
-```html
-<h1 v-if="awesome">Vue is awesome!</h1>
-```
+> 📄 **Code ví dụ:** [`examples/01-cu-phap.html`](examples/01-cu-phap.html)
 
 ## Ví dụ
 
-```html
-<script setup>
-import { ref } from 'vue'
-const isLogin = ref(true)
-</script>
-
-<template>
-  <h1 v-if="isLogin">Chào mừng bạn quay lại 🎉</h1>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/02-vi-du.html`](examples/02-vi-du.html)
 
 > ➡️ Khi isLogin = false → `<h1>` bị xóa khỏi DOM
 
@@ -56,27 +49,11 @@ const isLogin = ref(true)
 
 ## Ví dụ
 
-```html
-<script setup>
-import { ref } from 'vue'
-const awesome = ref(true)
-</script>
-
-<template>
-  <button @click="awesome = !awesome">Toggle</button>
-
-  <h1 v-if="awesome">Vue is awesome 😍</h1>
-  <h1 v-else>Oh no 😢</h1>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/03-vi-du.html`](examples/03-vi-du.html)
 
 > ⚠️ Sai cách (Vue sẽ không nhận `v-else`):
 
-```html
-<h1 v-if="awesome">OK</h1>
-<p>---</p>
-<h1 v-else>NOT OK</h1>
-```
+> 📄 **Code ví dụ:** [`examples/04-vi-du.html`](examples/04-vi-du.html)
 
 # 4. v-else-if – Nhiều điều kiện liên tiếp
 
@@ -88,19 +65,7 @@ const awesome = ref(true)
 
 ## Ví dụ
 
-```html
-<script setup>
-import { ref } from 'vue'
-const type = ref('B')
-</script>
-
-<template>
-  <div v-if="type === 'A'">Loại A</div>
-  <div v-else-if="type === 'B'">Loại B</div>
-  <div v-else-if="type === 'C'">Loại C</div>
-  <div v-else>Không thuộc loại nào</div>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/05-vi-du.html`](examples/05-vi-du.html)
 
 # 5. v-if trên template – Render nhiều phần tử cùng lúc
 
@@ -114,20 +79,7 @@ Dùng `<template v-if>`
 
 ## Ví dụ
 
-```html
-<script setup>
-import { ref } from 'vue'
-const ok = ref(true)
-</script>
-
-<template>
-  <template v-if="ok">
-    <h1>Tiêu đề</h1>
-    <p>Đoạn văn 1</p>
-    <p>Đoạn văn 2</p>
-  </template>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/06-vi-du.html`](examples/06-vi-du.html)
 
 > 📌 `<template>` không xuất hiện trong DOM, chỉ là wrapper logic.
 >
@@ -143,23 +95,11 @@ Chỉ thay đổi CSS: `display: none`
 
 ## Cú pháp
 
-```html
-<h1 v-show="ok">Hello!</h1>
-```
+> 📄 **Code ví dụ:** [`examples/07-cu-phap.html`](examples/07-cu-phap.html)
 
 ## Ví dụ
 
-```html
-<script setup>
-import { ref } from 'vue'
-const show = ref(false)
-</script>
-
-<template>
-  <button @click="show = !show">Toggle</button>
-  <p v-show="show">Nội dung này chỉ bị ẩn/hiện</p>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/08-vi-du.html`](examples/08-vi-du.html)
 
 > ⚠️ Lưu ý:
 >
@@ -168,6 +108,8 @@ const show = ref(false)
 
 # 7. So sánh v-if vs v-show (RẤT QUAN TRỌNG)
 
+Mục này là phần "chấm điểm" giữa hai cách ẩn/hiện — câu hỏi phỏng vấn kinh điển và cũng là phân vân thực tế thường gặp nhất.
+
 | Tiêu chí | v-if | v-show |
 | :--- | :--- | :--- |
 | **Render DOM** | Có điều kiện | Luôn render |
@@ -175,20 +117,24 @@ const show = ref(false)
 | **Chi phí** | Cao khi toggle | Cao lúc render đầu |
 | **Phù hợp** | Ít thay đổi | Toggle thường xuyên |
 
+> **Cách đọc bảng này:** so sánh ngang từng hàng. Hàng "Render DOM" là khác biệt gốc (có trong DOM hay không), các hàng còn lại đều là hệ quả. Hàng cuối là "câu trả lời tóm tắt" nên nhớ nhất.
+
 ## Khi nào dùng?
 
 - ✅ **v-if**: Modal hiếm mở, tab ít đổi
 - ✅ **v-show**: Dropdown, accordion, toggle UI
 
+> **Tóm gọn 1 câu:** `v-if` là "gọi người lên sân khấu khi cần", `v-show` là "đóng băng đèn hậu trường" — diễn thường xuyên thì dùng `v-show`, diễn ít thì dùng `v-if`.
+
 # 8. v-if kết hợp với v-for
+
+Mục này nói về cái bẫy thứ tự ưu tiên: khi đặt hai directive trên cùng một element, `v-if` "nói trước" `v-for` — và vì sao điều đó gây rắc rối.
 
 ## Quy tắc
 
 Khi dùng trên cùng 1 element:
 
-```html
-<li v-for="item in items" v-if="item.active">
-```
+> 📄 **Code ví dụ:** [`examples/09-quy-tac.html`](examples/09-quy-tac.html)
 
 ➡️ `v-if` chạy trước `v-for`
 
@@ -196,17 +142,9 @@ Vue khuyến cáo ❌ **KHÔNG** nên dùng như vậy
 
 ## Cách đúng
 
-```html
-<li v-for="item in activeItems" :key="item.id">
-  {{ item.name }}
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/10-cach-ung.html`](examples/10-cach-ung.html)
 
-```js
-const activeItems = computed(() =>
-  items.value.filter(item => item.active)
-)
-```
+> 📄 **Code ví dụ:** [`examples/11-cach-ung.js`](examples/11-cach-ung.js)
 
 > 📌 Tách logic ra → code rõ ràng, dễ debug, hiệu năng tốt hơn.
 
@@ -217,3 +155,5 @@ const activeItems = computed(() =>
 - `<template v-if>` → bật/tắt nhiều element
 - `v-show` → ẩn/hiện bằng CSS
 - Không nên dùng `v-if` + `v-for` cùng element.
+
+> **Tóm gọn 1 câu:** `v-if` quyết định "có tồn tại hay không", `v-show` quyết định "có hiện ra hay không" — và đừng bao giờ ghép `v-if` với `v-for` trên cùng một thẻ.

@@ -1,0 +1,15 @@
+<RouterView v-slot="{ Component }">
+  <Transition mode="out-in">
+    <KeepAlive>
+      <Suspense>
+        <!-- Render component từ router -->
+        <component :is="Component" />
+        
+        <!-- Loading state chung cho toàn bộ route -->
+        <template #fallback>
+          Đang chuyển trang...
+        </template>
+      </Suspense>
+    </KeepAlive>
+  </Transition>
+</RouterView>

@@ -2,24 +2,23 @@ Dưới đây là bản tóm tắt đầy đủ – chi tiết – dễ hiểu b
 
 # 1. Event Handling là gì?
 
+Mục này mở bài: mọi cú click, gõ phím, kéo scroll của người dùng đều phải đi qua "cửa tiếp tân" của Vue — `v-on`.
+
 Event Handling là cách Vue lắng nghe và xử lý các sự kiện DOM (click, submit, keyup, scroll, …) do người dùng hoặc trình duyệt tạo ra.
+
+Ví von: `v-on` giống như **gắn chuông cửa** — ai bấm (sự kiện xảy ra), chuông reo (hàm của bạn chạy). Không gắn chuông thì khách bấm mãi cũng không ai hay.
 
 👉 Vue dùng directive `v-on` (viết tắt là `@`) để bắt sự kiện.
 
 **Cú pháp chung:**
 
-```html
-v-on:event="handler"
-@click="handler"
-```
+> 📄 **Code ví dụ:** [`examples/01-1-event-handling-la-gi.html`](examples/01-1-event-handling-la-gi.html)
 
 # 2. Lắng nghe sự kiện (Listening to Events)
 
 Ví dụ cơ bản:
 
-```html
-<button @click="doSomething">Click me</button>
-```
+> 📄 **Code ví dụ:** [`examples/02-2-lang-nghe-su-kien-listening-to-events.html`](examples/02-2-lang-nghe-su-kien-listening-to-events.html)
 
 > 📌 Khi người dùng click vào button → hàm `doSomething` được gọi.
 
@@ -32,17 +31,7 @@ Ví dụ cơ bản:
 
 ## Ví dụ
 
-```html
-<script setup>
-import { ref } from 'vue'
-const count = ref(0)
-</script>
-
-<template>
-  <button @click="count++">Add 1</button>
-  <p>Count is: {{ count }}</p>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/03-vi-du.html`](examples/03-vi-du.html)
 
 > 📌 Mỗi lần click → `count` tăng lên → UI tự động cập nhật.
 
@@ -55,26 +44,13 @@ const count = ref(0)
 
 ## Ví dụ (Composition API)
 
-```html
-<script setup>
-import { ref } from 'vue'
-
-const name = ref('Vue.js')
-
-function greet(event) {
-  alert(`Hello ${name.value}`)
-  console.log(event.target.tagName)
-}
-</script>
-
-<template>
-  <button @click="greet">Greet</button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/04-vi-du-composition-api.html`](examples/04-vi-du-composition-api.html)
 
 > 📌 Vue tự động truyền DOM Event vào hàm.
 
 # 5. Phân biệt Inline vs Method
+
+Mục này nói về cách Vue tự "đọc vị" handler của bạn: viết kiểu nào là inline, kiểu nào là method — không cần khai báo gì thêm.
 
 Vue tự nhận diện:
 
@@ -85,22 +61,13 @@ Vue tự nhận diện:
 | `say('hi')` | **Inline** |
 | `foo.bar` | **Method** |
 
+> **Cách đọc bảng này:** mỗi dòng một cách viết, cột phải là cách Vue hiểu. Quy tắc chung: **chỉ là tên** (dẫn tới hàm) → method; **có cú pháp tính toán hay gọi hàm kèm ngoặc** → inline.
+
 # 6. Gọi method + truyền tham số
 
 ## Ví dụ
 
-```html
-<script setup>
-function say(message) {
-  alert(message)
-}
-</script>
-
-<template>
-  <button @click="say('hello')">Say hello</button>
-  <button @click="say('bye')">Say bye</button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/05-vi-du.html`](examples/05-vi-du.html)
 
 > 📌 Khi cần truyền dữ liệu → phải gọi hàm trong inline handler.
 
@@ -108,24 +75,17 @@ function say(message) {
 
 Cách 1: dùng `$event`
 
-```html
-<button @click="warn('Không thể submit', $event)">Submit</button>
-```
+> 📄 **Code ví dụ:** [`examples/06-7-truy-cap-dom-event-trong-inline-handler.html`](examples/06-7-truy-cap-dom-event-trong-inline-handler.html)
 
 Cách 2: arrow function
 
-```html
-<button @click="(e) => warn('Không thể submit', e)">Submit</button>
-```
+> 📄 **Code ví dụ:** [`examples/07-7-truy-cap-dom-event-trong-inline-handler.html`](examples/07-7-truy-cap-dom-event-trong-inline-handler.html)
 
-```js
-function warn(message, event) {
-  event.preventDefault()
-  alert(message)
-}
-```
+> 📄 **Code ví dụ:** [`examples/08-7-truy-cap-dom-event-trong-inline-handler.js`](examples/08-7-truy-cap-dom-event-trong-inline-handler.js)
 
 # 8. Event Modifiers (Bộ sửa đổi sự kiện)
+
+Mục này nói về "nút bấm gọn" cho những đoạn code xử lý sự kiện lặp đi lặp lại — thay vì viết tay `event.preventDefault()` khắp nơi.
 
 Giúp giảm code DOM trong JS.
 
@@ -140,13 +100,11 @@ Các modifier phổ biến:
 | `.capture` | capture mode |
 | `.passive` | tối ưu scroll |
 
+> **Cách đọc bảng này:** mỗi dòng một modifier, cột phải là công việc DOM thuần mà nó thay thế. Cần xử lý gì thì tìm hàng tương ứng, gắn vào sau `@click.` là xong.
+
 ## Ví dụ
 
-```html
-<form @submit.prevent="onSubmit"></form>
-<a @click.stop.prevent="doThat"></a>
-<div @click.self="doThis"></div>
-```
+> 📄 **Code ví dụ:** [`examples/09-vi-du.html`](examples/09-vi-du.html)
 
 > 📌 Thứ tự modifier rất quan trọng
 >
@@ -154,12 +112,11 @@ Các modifier phổ biến:
 
 # 9. Key Modifiers (Phím bàn phím)
 
+Mục này nói về cách "bắn tên phím" thẳng vào template: chỉ chạy handler khi người dùng bấm đúng phím mình cần.
+
 ## Ví dụ
 
-```html
-<input @keyup.enter="submit" />
-<input @keyup.page-down="onPageDown" />
-```
+> 📄 **Code ví dụ:** [`examples/10-vi-du.html`](examples/10-vi-du.html)
 
 > 📌 Vue kiểm tra `event.key`.
 
@@ -172,12 +129,11 @@ Các modifier phổ biến:
 - `.up`, `.down`, `.left`, `.right`
 - `.delete` (Delete + Backspace)
 
+> **Tóm gọn 1 câu:** Key modifier là "chốt cửa theo đúng chiếc chìa" — `@keyup.enter` nghĩa là chỉ mở cửa khi khách bấm đúng phím Enter.
+
 # 10. System Modifier Keys (Ctrl, Alt, Shift, Meta)
 
-```html
-<input @keyup.alt.enter="clear" />
-<div @click.ctrl="doSomething">Click</div>
-```
+> 📄 **Code ví dụ:** [`examples/11-10-system-modifier-keys-ctrl-alt-shift-meta.html`](examples/11-10-system-modifier-keys-ctrl-alt-shift-meta.html)
 
 > 📌 meta:
 >
@@ -188,16 +144,7 @@ Các modifier phổ biến:
 
 Kiểm soát chính xác tổ hợp phím
 
-```html
-<!-- Ctrl (kể cả thêm phím) -->
-<button @click.ctrl="onClick">Ctrl</button>
-
-<!-- Chỉ Ctrl -->
-<button @click.ctrl.exact="onCtrlClick">Chỉ Ctrl</button>
-
-<!-- Không có phím phụ -->
-<button @click.exact="onClick">Không có phím phụ</button>
-```
+> 📄 **Code ví dụ:** [`examples/12-11-exact-modifier.html`](examples/12-11-exact-modifier.html)
 
 # 12. Mouse Button Modifiers
 
@@ -207,8 +154,10 @@ Kiểm soát chính xác tổ hợp phím
 | `.right` | chuột phải |
 | `.middle` | nút giữa |
 
-```html
-<button @click.right="openMenu">Menu</button>
-```
+> **Cách đọc bảng này:** ba dòng ứng với ba nút chuột, cột phải cho biết modifier nào "bắt" nút nào — ví dụ `.right` chỉ chạy handler cho chuột phải (menu chuột phải, copy-via-menu...).
+
+> 📄 **Code ví dụ:** [`examples/13-12-mouse-button-modifiers.html`](examples/13-12-mouse-button-modifiers.html)
 
 > 📌 Không phụ thuộc chuột thuận tay trái/phải.
+
+> **Tóm gọn 1 câu:** Mouse modifier giúp chia handler theo từng nút chuột — `.left`, `.right`, `.middle` — không cần if kiểm tra `event.button` trong code.

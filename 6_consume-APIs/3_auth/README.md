@@ -7,6 +7,10 @@
 
 ## 1. Tổng quan kiến trúc auth ở phía Vue
 
+Mục này vẽ bản đồ toàn bài: front-end không "xác thực" — việc đó là của server. Vue app chỉ làm 5 việc quanh token: gửi thông tin đăng nhập, nhận token, lưu, gắn vào request, và điều hướng theo trạng thái đăng nhập.
+
+Ví von: Vue app là lễ tân khách sạn — nhận thẻ phòng từ quầy (server), đưa khách cầm, và chặn ai không có thẻ vào khu riêng; còn quyết định ai được cấp thẻ là của quản lý (backend).
+
 Front-end không "xác thực" — xác thực diễn ra ở **server**. Vue app chỉ:
 
 1. Gửi thông tin đăng nhập (email + mật khẩu) qua HTTPS.
@@ -31,35 +35,11 @@ Front-end không "xác thực" — xác thực diễn ra ở **server**. Vue app
 
 ## 2. Auth store với Pinia — nguồn sự thật
 
-```ts
-// stores/auth.ts
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import { api } from '@/api/client'
+Mục này dựng "căn cước trung tâm" của app: một store Pinia giữ trạng thái đăng nhập (user, token) để mọi nơi hỏi một chỗ, khỏi tự đoán mỗi nơi một kiểu.
 
-export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
-  const token = ref<string | null>(null)
+Ví von: như bảng thông tin công ty — ai cần biết "ông khách còn ở đây không" thì nhìn bảng, không đi hỏi từng phòng.
 
-  const isLoggedIn = computed(() => !!token.value)
-  const isAdmin = computed(() => user.value?.role === 'admin')
-
-  async function login(email: string, password: string) {
-    const { data } = await api.post('/auth/login', { email, password })
-    token.value = data.accessToken
-    user.value = data.user
-    localStorage.setItem('access_token', data.accessToken)   // xem mục 3
-  }
-
-  function logout() {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('access_token')
-  }
-
-  return { user, token, isLoggedIn, isAdmin, login, logout }
-})
-```
+> 📄 **Code ví dụ:** [`examples/01-2-auth-store-voi-pinia-nguon-su-that.ts`](examples/01-2-auth-store-voi-pinia-nguon-su-that.ts)
 
 Chi tiết Pinia: [`8_pinia/1_defining-a-store`](../../8_pinia/1_defining-a-store/README.md).
 
@@ -67,11 +47,15 @@ Chi tiết Pinia: [`8_pinia/1_defining-a-store`](../../8_pinia/1_defining-a-stor
 
 ## 3. Lưu token — lựa chọn và rủi ro
 
+Mục này là bài "cất chìa khóa": token để đâu thì quyết định độ an toàn với XSS. Đọc để chọn đúng ngăn kéo cho access token và refresh token.
+
 | Cách lưu | Ưu | Nhược |
 |---|---|---|
 | `localStorage` | Đơn giản, sống sót qua refresh | ❌ Đọc được bằng **mọi JS trên trang** — XSS đọc trộm được |
 | **`httpOnly` cookie** (server set) | ⭐ JS không đọc được — an toàn nhất với XSS | Cần cấu hình backend `SameSite`, `CSRF` |
 | State trong memory (Pinia) | Không lưu bền | Mất khi refresh trang |
+
+> **Cách đọc bảng này:** mỗi dòng là một "ngăn cất chìa" xếp từ tiện nhất đến an toàn nhất; cột Nhược là giá phải trả. Đọc xuôi để hiểu trade-off, rồi chọn theo ràng buộc dự án.
 
 **Khuyến nghị thực chiến:**
 
@@ -79,86 +63,29 @@ Chi tiết Pinia: [`8_pinia/1_defining-a-store`](../../8_pinia/1_defining-a-stor
 - **Refresh token dài hạn**: chỉ trong **httpOnly cookie** (server đảm nhiệm), front-end không chạm vào.
 - Nếu dự án đơn giản dùng `localStorage`: hiểu rõ rủi ro XSS và giữ các thư viện phụ thuộc kiểm soát (audit `npm audit`).
 
+> **Tóm gọn 1 câu:** Token càng giá trị cao càng cất chỗ kín (httpOnly cookie, memory) — `localStorage` tiện nhưng XSS đọc được, chỉ dùng khi hiểu rõ rủi ro.
+
 ---
 
 ## 4. Trang đăng nhập
 
-```vue
-<!-- pages/Login.vue -->
-<script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+Mục này dựng "cửa vào" của app: form login gọi API, xử lý lỗi, và dọn mật khẩu khỏi bộ nhớ ngay khi xong việc.
 
-const email = ref('')
-const password = ref('')
-const error = ref('')
-const loading = ref(false)
-const router = useRouter()
+> 📄 **Code ví dụ:** [`examples/02-4-trang-ang-nhap.vue`](examples/02-4-trang-ang-nhap.vue)
 
-async function submit() {
-  loading.value = true
-  error.value = ''
-  try {
-    const auth = useAuthStore()
-    await auth.login(email.value, password.value)
-    router.push('/')                       // hoặc redirect về ?redirect=... trước đó
-  } catch (e) {
-    error.value = e.response?.status === 401
-      ? 'Email hoặc mật khẩu không đúng'
-      : 'Không thể đăng nhập, thử lại sau'
-  } finally {
-    loading.value = false
-  }
-}
-</script>
+📌 Không tự đặt mật khẩu trong state lâu hơn cần; sau `login()` thành công, xóa `password.value` khỏi bộ nhớ component. Giống như xé giấy ghi mật khẩu ngay khi gõ xong vào điện thoại — đừng giữ mảnh giấy trong túi.
 
-<template>
-  <form @submit.prevent="submit">
-    <input v-model="email" type="email" required placeholder="Email" />
-    <input v-model="password" type="password" required placeholder="Mật khẩu" />
-    <button :disabled="loading">
-      {{ loading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
-    </button>
-    <p v-if="error" class="err">{{ error }}</p>
-  </form>
-</template>
-```
-
-📌 Không tự đặt mật khẩu trong state lâu hơn cần; sau `login()` thành công, xóa `password.value` khỏi bộ nhớ component.
+> **Tóm gọn 1 câu:** Trang đăng nhập = gọi API login, xử lý lỗi, và xóa mật khẩu khỏi bộ nhớ ngay khi thành công.
 
 ---
 
 ## 5. Bảo vệ route — Navigation Guard
 
-```ts
-// router/index.ts
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+Mục này dựng "chốt gác" của app: trước khi người dùng bước vào trang nào đó, guard kiểm tra thẻ (đã đăng nhập chưa, đủ quyền chưa) và chặn hoặc cho qua.
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    { path: '/login', component: Login },
-    {
-      path: '/admin',
-      component: AdminDashboard,
-      meta: { requiresAuth: true, requiresAdmin: true },
-    },
-  ],
-})
+Ví von: như chốt an ninh ở sảnh khu vực riêng — không ai tự bấm thang máy vào tầng VIP được.
 
-router.beforeEach((to) => {
-  const auth = useAuthStore()
-
-  if (to.meta.requiresAuth && !auth.isLoggedIn) {
-    return { name: 'login', query: { redirect: to.fullPath } }   // nhớ lại đích
-  }
-  if (to.meta.requiresAdmin && !auth.isAdmin) {
-    return { name: 'forbidden' }     // trang 403
-  }
-})
-```
+> 📄 **Code ví dụ:** [`examples/03-5-bao-ve-route-navigation-guard.ts`](examples/03-5-bao-ve-route-navigation-guard.ts)
 
 Chi tiết navigation guards: [`9_vue-ecosystem/vue-router-4`](../../9_vue-ecosystem/vue-router-4/README.md).
 
@@ -169,93 +96,42 @@ Chi tiết navigation guards: [`9_vue-ecosystem/vue-router-4`](../../9_vue-ecosy
 
 ## 6. Refresh token — tự động đổi token khi 401
 
-```ts
-// api/client.ts
-let refreshing: Promise<string> | null = null
+Mục này nói về cơ chế "gia hạn thẻ tự động": access token hết hạn thì interceptor dùng refresh token đổi thẻ mới rồi gửi lại request — người dùng không thấy gì. Đọc để hiểu hai bẫy kỹ thuật quan trọng của cơ chế này.
 
-api.interceptors.response.use(undefined, async (error) => {
-  const original = error.config
-
-  // KHÔNG retry cho chính endpoint refresh → tránh vòng lặp
-  if (error.response?.status !== 401 || original.url === '/auth/refresh') {
-    return Promise.reject(error)
-  }
-
-  try {
-    refreshing ??= api.post('/auth/refresh').then((r) => r.data.accessToken)
-    const token = await refreshing
-    localStorage.setItem('access_token', token)
-    original.headers.Authorization = `Bearer ${token}`
-    return api(original)                 // gửi lại request gốc bằng token mới
-  } catch {
-    useAuthStore().logout()
-    return Promise.reject(error)
-  } finally {
-    refreshing = null
-  }
-})
-```
+> 📄 **Code ví dụ:** [`examples/04-6-refresh-token-tu-ong-oi-token-khi.ts`](examples/04-6-refresh-token-tu-ong-oi-token-khi.ts)
 
 📌 Hai điểm kỹ thuật quan trọng:
 
-- **`refreshing ??=`** — nếu 3 request đồng thời nhận 401, chỉ một request `/auth/refresh` được gửi; hai request còn lại chờ dùng chung token mới.
+- **`refreshing ??=`** — nếu 3 request đồng thời nhận 401, chỉ một request `/auth/refresh` được gửi; hai request còn lại chờ dùng chung token mới. Ví von: cả nhà hết tiền lẻ, chỉ một người ra quầy đổi — những người kia đứng chờ nhận lại, chứ không ai đứng xếp ba hàng.
 - **Kiểm tra URL** để không refresh vô hạn khi chính endpoint refresh trả 401.
+
+> **Tóm gọn 1 câu:** Refresh token tự động = nhận 401, đổi token mới đúng một lần (bằng `refreshing ??=`), gửi lại request — và chặn vòng lặp vô hạn bằng cách kiểm tra URL.
 
 ---
 
 ## 7. Phân quyền trong UI (v-show/permission)
 
+Mục này nói về "màn trình diễn" phân quyền: ẩn nút theo vai trò để trải nghiệm đẹp — nhưng nhớ đây chỉ là lớp trang điểm, không phải kính vạn năng an toàn.
+
 Ẩn/hiện nút theo vai trò — nhưng nhớ **UI không phải bảo mật**, chỉ là trải nghiệm:
 
-```vue
-<script setup>
-import { useAuthStore } from '@/stores/auth'
-
-const auth = useAuthStore()
-</script>
-
-<template>
-  <button v-if="auth.isAdmin">Xóa người dùng</button>
-  <button v-if="auth.isLoggedIn" @click="auth.logout()">Đăng xuất</button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/05-7-phan-quyen-trong-ui-v-show-permission.vue`](examples/05-7-phan-quyen-trong-ui-v-show-permission.vue)
 
 Cách gọn hơn — đăng ký directive toàn cục `v-permission`:
 
-```ts
-// main.ts
-app.directive('permission', {
-  mounted(el, binding) {
-    const auth = useAuthStore()
-    if (!binding.check(binding.value)) el.remove()
-    // ví dụ: v-permission="'admin'"
-  },
-})
-```
+> 📄 **Code ví dụ:** [`examples/06-7-phan-quyen-trong-ui-v-show-permission.ts`](examples/06-7-phan-quyen-trong-ui-v-show-permission.ts)
 
 ---
 
 ## 8. Khôi phục phiên khi F5 — bootstrapping
 
+Mục này giải quyết bài toán "nhà mất điện": F5 là state Pinia bay hết — cần "bật lại nguồn" bằng cách đọc token và lấy thông tin user trước khi app chạy tiếp.
+
+Ví von: mất điện lúc đang xem TV — có điện lại thì phải đăng nhập lại hộp cáp (tự động, không phải bấm tay).
+
 Sau khi refresh trang, Pinia state rỗng → đọc lại token và lấy thông tin user:
 
-```ts
-// main.ts (trước mount)
-const auth = useAuthStore()
-const savedToken = localStorage.getItem('access_token')
-
-if (savedToken) {
-  auth.token = savedToken
-  try {
-    await auth.fetchProfile()      // GET /me — xác thực token còn hạn
-    await router.isReady()         // chờ router trước khi mount
-    app.mount('#app')
-  } catch {
-    auth.logout()                  // token đã hết hạn/hỏng
-    app.mount('#app')
-  }
-}
-```
+> 📄 **Code ví dụ:** [`examples/07-8-khoi-phuc-phien-khi-f5-bootstrapping.ts`](examples/07-8-khoi-phuc-phien-khi-f5-bootstrapping.ts)
 
 📌 Hoặc dùng `router.beforeEach` để gọi `fetchProfile()` lần đầu khi cần — tránh treo trang nếu `/me` chậm.
 
@@ -265,43 +141,25 @@ if (savedToken) {
 
 ### Đăng ký tài khoản
 
-```ts
-await api.post('/auth/register', { name, email, password })
-router.push({ name: 'login', query: { registered: '1' } })
-```
+> 📄 **Code ví dụ:** [`examples/08-ang-ky-tai-khoan.ts`](examples/08-ang-ky-tai-khoan.ts)
 
 ### Đổi mật khẩu (yêu cầu đang đăng nhập)
 
-```ts
-await api.patch('/me/password', { oldPassword, newPassword })
-// Nhiều hệ thống đăng xuất tất cả phiên khác sau đổi mật khẩu
-auth.logout()
-```
+> 📄 **Code ví dụ:** [`examples/09-oi-mat-khau-yeu-cau-ang-ang-nhap.ts`](examples/09-oi-mat-khau-yeu-cau-ang-ang-nhap.ts)
 
 ### Bảo vệ route của admin (chi tiết)
 
-```ts
-// router/index.ts
-{
-  path: '/admin',
-  beforeEnter: () => {
-    const auth = useAuthStore()
-    return auth.isAdmin ? true : { name: 'forbidden' }
-  },
-}
-```
+> 📄 **Code ví dụ:** [`examples/10-bao-ve-route-cua-admin-chi-tiet.ts`](examples/10-bao-ve-route-cua-admin-chi-tiet.ts)
 
 ### Đăng nhập xã hội (OAuth)
 
-```ts
-// Chuyển hướng người dùng tới provider; server callback trả token qua query
-window.location.href = `${API}/auth/google?redirect=${encodeURIComponent(location.origin)}`
-// Server redirect về /auth/callback?token=... → gọi login() của store
-```
+> 📄 **Code ví dụ:** [`examples/11-ang-nhap-xa-hoi-oauth.ts`](examples/11-ang-nhap-xa-hoi-oauth.ts)
 
 ---
 
 ## 10. Checklist bảo mật auth front-end
+
+Mục này là "danh sách soát vé trước khi mở cửa" — đọc để chấm từng dòng trước khi release auth lên production.
 
 - ✅ **HTTPS** bắt buộc cho mọi request.
 - ✅ Token trong **httpOnly cookie** nếu có thể (hợp tác backend), không tự lưu trong `localStorage` nếu có cookie.
@@ -310,6 +168,8 @@ window.location.href = `${API}/auth/google?redirect=${encodeURIComponent(locatio
 - ✅ Mọi kiểm tra quyền quan trọng **phải lặp lại ở backend** (UI chỉ để trải nghiệm).
 - ✅ Logout dọn dẹp sạch: token, store, header mặc định, cache của interceptor (`refreshing = null`).
 - ❌ Không nhúng mật khẩu hay secret trong bundle (`VITE_` env là **công khai**!).
+
+> **Tóm gọn 1 câu:** Auth front-end = HTTPS bắt buộc, token kín trong httpOnly, refresh tự động, guard ở route nhạy cảm — và backend luôn kiểm tra lại lần cuối.
 
 ---
 

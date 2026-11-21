@@ -1,0 +1,13 @@
+<script setup>
+import { useTemplateRef, onMounted } from 'vue'
+
+const input = useTemplateRef('my-input')
+
+onMounted(() => {
+  input.value.focus()
+})
+</script>
+
+<template>
+  <input ref="my-input" />
+</template>

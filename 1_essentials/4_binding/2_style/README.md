@@ -1,66 +1,48 @@
 # 5. Binding Inline Styles (:style)
 
+File này nói về cách "đổi màu áo" của phần tử từ JavaScript: gán style inline bằng `:style` thay vì viết CSS tĩnh. Mục 5–8 đi từ object cơ bản tới auto-prefix.
+
 ## 5.1. Binding style bằng Object
 
-```html
-<div :style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
-```
+Đây là cách phổ biến nhất: mỗi thuộc tính CSS là một key, giá trị là một biểu thức có thể thay đổi theo state.
 
-```js
-const activeColor = ref('red')
-const fontSize = ref(30)
-```
+> 📄 **Code ví dụ:** [`examples/01-5-1-binding-style-bang-object.html`](examples/01-5-1-binding-style-bang-object.html)
+
+> 📄 **Code ví dụ:** [`examples/02-5-1-binding-style-bang-object.js`](examples/02-5-1-binding-style-bang-object.js)
 
 **render:**
 
-```html
-<div style="color: red; font-size: 30px;"></div>
-```
+> 📄 **Code ví dụ:** [`examples/03-5-1-binding-style-bang-object.html`](examples/03-5-1-binding-style-bang-object.html)
 
 ## 5.2. camelCase & kebab-case đều được
 
-```html
-<div :style="{ 'font-size': fontSize + 'px' }"></div>
-```
+> 📄 **Code ví dụ:** [`examples/04-5-2-camelcase-kebab-case-eu-uoc.html`](examples/04-5-2-camelcase-kebab-case-eu-uoc.html)
 
 ## 5.3. Style object đặt trong biến
 
-```js
-const styleObject = reactive({
-  color: 'red',
-  fontSize: '30px'
-})
-```
+> 📄 **Code ví dụ:** [`examples/05-5-3-style-object-at-trong-bien.js`](examples/05-5-3-style-object-at-trong-bien.js)
 
-```html
-<div :style="styleObject"></div>
-```
+> 📄 **Code ví dụ:** [`examples/06-5-3-style-object-at-trong-bien.html`](examples/06-5-3-style-object-at-trong-bien.html)
 
 > ✔ Template sạch hơn
 
 ## 5.4. Dùng chung style thường và :style
 
-```html
-<h1 style="color: red" :style="'font-size: 1em'">
-  hello
-</h1>
-```
+> 📄 **Code ví dụ:** [`examples/07-5-4-dung-chung-style-thuong-va-style.html`](examples/07-5-4-dung-chung-style-thuong-va-style.html)
 
 **render:**
 
-```html
-<h1 style="color: red; font-size: 1em;">hello</h1>
-```
+> 📄 **Code ví dụ:** [`examples/08-5-4-dung-chung-style-thuong-va-style.html`](examples/08-5-4-dung-chung-style-thuong-va-style.html)
 
 # 6. Binding style bằng Array
 
-```html
-<div :style="[baseStyles, overridingStyles]"></div>
-```
+> 📄 **Code ví dụ:** [`examples/09-6-binding-style-bang-array.html`](examples/09-6-binding-style-bang-array.html)
 
 > ➡ Các object style sẽ merge lại với nhau
 
 # 7. Auto-prefix (Vue tự thêm tiền tố trình duyệt)
+
+Mục này là tin vui "khỏi lo": Vue tự lo phần tương thích trình duyệt giúp bạn.
 
 Vue tự kiểm tra:
 
@@ -70,11 +52,13 @@ Vue tự kiểm tra:
 
 👉 Bạn không cần lo compatibility
 
+Ví von: Vue đóng vai **người phiên dịch tại quầy làm visa** — bạn nói tiếng CSS chuẩn, Vue tự dịch sang "tiếng địa phương" của từng trình duyệt khi cần.
+
 # 8. Multiple Values (nhiều giá trị cho 1 property)
 
-```html
-<div :style="{ display: ['-webkit-box', '-ms-flexbox', 'flex'] }"></div>
-```
+Mục này nói về mẹo "dự phòng phương án": cung cấp nhiều giá trị cho cùng một thuộc tính, trình duyệt tự chọn cái nó hiểu.
+
+> 📄 **Code ví dụ:** [`examples/10-8-multiple-values-nhieu-gia-tri-cho-1.html`](examples/10-8-multiple-values-nhieu-gia-tri-cho-1.html)
 
 > ✔ Trình duyệt sẽ chọn giá trị hỗ trợ cuối cùng
 
@@ -88,3 +72,7 @@ Vue tự kiểm tra:
 | **Style động** | `:style="{ color, fontSize }"` |
 | **Style gọn** | Object / Array |
 | **Component** | Class tự merge vào root |
+
+> **Cách đọc bảng này:** cột trái là tình huống thực tế, cột phải là "cú pháp nên dùng". Dùng như bảng tra cứu nhanh trước khi viết code.
+
+> **Tóm gọn 1 câu:** `:style` là "bảng màu động" — object để gọn, array để gộp, computed để gánh logic, còn chuyện trình duyệt nào hiểu cú pháp gì thì Vue lo giùm.

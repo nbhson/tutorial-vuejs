@@ -1,0 +1,7 @@
+<script setup lang="ts">
+const emit = defineEmits({
+  submit(payload: { email: string, password: string }) {
+    return !!(payload.email && payload.password)
+  }
+})
+</script>

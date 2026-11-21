@@ -15,36 +15,15 @@
 
 ## 1. Mutations là gì? (vì sao Vuex có chúng)
 
+Mục này giải thích thứ duy nhất mà Pinia xóa hẳn: mutations. Đọc để hiểu vì sao Vuex từng bắt mọi thay đổi state phải đi qua "cửa duy nhất" này — và vì sao Pinia dám bỏ.
+
+Ví von: mutations như thủ kho duy nhất được chạm vào kho — muốn lấy/đặt hàng thì phiếu phải qua tay ổng, nên ai làm gì với kho đều có ghi chép.
+
 Trong Vuex, **state không được sửa trực tiếp từ ngoài**. Mọi thay đổi phải đi qua một **mutation** — hàm nhận `(state, payload)`:
 
-```js
-// ❌ Vuex 4 — legacy
-import { createStore } from 'vuex'
+> 📄 **Code ví dụ:** [`examples/01-1-mutations-la-gi-vi-sao-vuex-co.js`](examples/01-1-mutations-la-gi-vi-sao-vuex-co.js)
 
-export default createStore({
-  state: () => ({ count: 0 }),
-  mutations: {
-    increment(state) {
-      state.count++                       // thay đổi state ở đây
-    },
-    incrementBy(state, amount) {
-      state.count += amount
-    },
-  },
-})
-```
-
-```vue
-<script setup>
-import { useStore } from 'vuex'
-
-const store = useStore()
-
-function increment() {
-  store.commit('increment')            // BẮT BUỘC gọi qua mutation
-}
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/02-1-mutations-la-gi-vi-sao-vuex-co.vue`](examples/02-1-mutations-la-gi-vi-sao-vuex-co.vue)
 
 ### Vì sao Vuex thiết kế mutations?
 
@@ -54,44 +33,31 @@ function increment() {
 
 Trong thực tế, hai lý do này được Pinia giải quyết tốt hơn qua DevTools tự theo dõi action — đó là lý do Pinia xóa mutations.
 
+> **Tóm gọn 1 câu:** Mutations là "cửa duy nhất" thay đổi state để dễ log và time-travel — nhưng Pinia chứng minh cửa đó không cần thiết nên đã xóa hẳn.
+
 ## 2. Mutations truyền tham số — "payload"
 
-```js
-// ❌ legacy
-mutations: {
-  addTodo(state, todo) {
-    state.todos.push(todo)
-  },
-  removeTodo(state, id) {
-    state.todos = state.todos.filter((t) => t.id !== id)
-  },
-}
-```
+> 📄 **Code ví dụ:** [`examples/03-2-mutations-truyen-tham-so-payload.js`](examples/03-2-mutations-truyen-tham-so-payload.js)
 
-```js
-store.commit('add', { id: 3, text: 'Nhiệm vụ mới', done: false })
-store.commit('todo/remove', 2, { root: true })   // gọi từ module khác
-```
+> 📄 **Code ví dụ:** [`examples/04-2-mutations-truyen-tham-so-payload.js`](examples/04-2-mutations-truyen-tham-so-payload.js)
 
 ## 3. ❌ Cấm mutate state từ ngoài mutation
 
+Mục này cho thấy "cảnh sát" của Vuex: sửa state lậu ngoài mutation là dev mode sẽ hét lên. Đọc để hiểu quy tắc mà code cũ của bạn đang tuân theo (và Pinia thì ngược lại).
+
 Vuex **báo lỗi** (trong chế độ dev) khi bạn ghi state trực tiếp:
 
-```js
-store.state.count = 10     // ❌ "Do not mutate vuex store state outside mutation handlers"
-```
+> 📄 **Code ví dụ:** [`examples/05-3-cam-mutate-state-tu-ngoai-mutation.js`](examples/05-3-cam-mutate-state-tu-ngoai-mutation.js)
 
 Tương ứng trong **Pinia** — hành vi **ngược lại**:
 
-```ts
-// ✅ Pinia: sửa state trực tiếp trong store là được, không cần mutation
-const store = useCounterStore()
-store.count++
-```
+> 📄 **Code ví dụ:** [`examples/06-3-cam-mutate-state-tu-ngoai-mutation.ts`](examples/06-3-cam-mutate-state-tu-ngoai-mutation.ts)
 
 > 💡 Đó là một trong những lý do lớn nhất khiến Pinia gọn hơn Vuex: **một lớp trung gian (mutations) bị xóa bỏ**.
 
 ## 4. Đối chiếu mutation → action Pinia
+
+Mục này là "bảng dịch" khi migrate: mỗi mutation của Vuex biến thành gì ở Pinia. Đọc dòng nào dịch dòng đó.
 
 | Vuex | Pinia tương đương |
 |---|---|
@@ -99,16 +65,13 @@ store.count++
 | `store.commit('increment')` | `counter.increment()` (gọi action) |
 | `commit` phải đồng bộ | Action được phép async tự do |
 
-```ts
-// ✅ Pinia — action đồng bộ, không qua mutation
-export const useCounterStore = defineStore('counter', () => {
-  const count = ref(0)
-  function increment() { count.value++ }
-  return { count, increment }
-})
-```
+> **Cách đọc bảng này:** cột trái là cú pháp Vuex cần xóa, cột phải là nơi logic đó về ở Pinia. Dòng đầu là quan trọng nhất: mutation biến mất chứ không chuyển đổi.
+
+> 📄 **Code ví dụ:** [`examples/07-4-oi-chieu-mutation-action-pinia.ts`](examples/07-4-oi-chieu-mutation-action-pinia.ts)
 
 ## 5. Quy trình migration: mutations → Pinia
+
+Mục này là "đường đi của từng món đồ khi chuyển nhà": sơ đồ dưới cho biết mỗi thành phần Vuex về đâu trong store Pinia.
 
 ```
 Vuex store
@@ -120,27 +83,17 @@ Vuex store
 
 Ví dụ chuyển một mutation cụ thể:
 
-```js
-// Vuex mutation
-mutations: {
-  addItem(state, item) { state.items.push(item) }
-}
-```
+> 📄 **Code ví dụ:** [`examples/08-5-quy-trinh-migration-mutations-pinia.js`](examples/08-5-quy-trinh-migration-mutations-pinia.js)
 
-```ts
-// ✅ Pinia action tương đương
-export const useCartStore = defineStore('cart', () => {
-  const items = ref<Item[]>([])
-  function addItem(item: Item) { items.value.push(item) }   // không cần mutation
-  return { items, addItem }
-})
-```
+> 📄 **Code ví dụ:** [`examples/09-5-quy-trinh-migration-mutations-pinia.ts`](examples/09-5-quy-trinh-migration-mutations-pinia.ts)
 
 ## 6. Khi nào đọc tiếp phần Vuex legacy?
 
 - ✅ Code cũ dùng `store.commit(...)` và bạn cần hiểu từng dòng.
 - ✅ Chuyển Vuex → Pinia: mỗi mutation trở thành một **action** Pinia (bên trong vẫn sửa state trực tiếp).
 - ❌ Dự án mới: học thẳng Pinia — mutations **không tồn tại** trong Pinia.
+
+> **Tóm gọn 1 câu:** Mutations là khái niệm Vuex cần "xóa" khi migrate — logic đổi state đưa thẳng vào action Pinia, khỏi đi qua cửa trung gian nữa.
 
 ## Nguồn tham khảo
 

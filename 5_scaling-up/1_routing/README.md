@@ -7,38 +7,11 @@
 
 ## 1. Routing đơn giản không cần thư viện (hiểu cách hoạt động)
 
+Mục này nói về "router tự chế": làm router bằng tay từ hash-URL + map component — không phải để dùng trong dự án, mà để bạn thấy nguyên lý của Vue Router chỉ là một bảng tra và một `<component :is>`.
+
 Trước khi cài router, bạn có thể làm "router" bằng cách ánh xạ hash-URL tới component — giúp hiểu nguyên lý của Vue Router:
 
-```vue
-<script setup>
-import { ref, computed } from 'vue'
-import Home from './Home.vue'
-import About from './About.vue'
-import NotFound from './NotFound.vue'
-
-const routes = {
-  '/': Home,
-  '/about': About,
-}
-
-const currentPath = ref(window.location.hash)
-
-window.addEventListener('hashchange', () => {
-  currentPath.value = window.location.hash
-})
-
-const currentView = computed(() => {
-  return routes[currentPath.value.slice(1) || '/'] || NotFound
-})
-</script>
-
-<template>
-  <a href="#/">Home</a> |
-  <a href="#/about">About</a> |
-  <a href="#/non-existent-path">Broken Link</a>
-  <component :is="currentView" />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/01-1-routing-on-gian-khong-can-thu-vien.vue`](examples/01-1-routing-on-gian-khong-can-thu-vien.vue)
 
 📌 Ứng dụng thực tế: **không dùng cách này cho dự án** — thiếu route động, navigation guard, lazy-load. Dùng Vue Router 4. Nhưng nguyên lý (URL → component map → render bằng `<component :is>`) chính là cốt lõi của router.
 
@@ -46,36 +19,13 @@ const currentView = computed(() => {
 
 ## 2. Cài đặt Vue Router 4
 
-```bash
-npm install vue-router@4
-```
+Mục này nói về bước dựng khung: cài thư viện, tạo router với danh sách route, và gắn vào app — ba bước là có hệ thống định tuyến hoàn chỉnh.
 
-```ts
-// router/index.ts
-import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/views/Home.vue'
-import About from '@/views/About.vue'
+> 📄 **Code ví dụ:** [`examples/02-2-cai-at-vue-router-4.sh`](examples/02-2-cai-at-vue-router-4.sh)
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    { path: '/', name: 'home', component: Home },
-    { path: '/about', name: 'about', component: About },
-    { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFound.vue') },
-  ],
-})
+> 📄 **Code ví dụ:** [`examples/03-2-cai-at-vue-router-4.ts`](examples/03-2-cai-at-vue-router-4.ts)
 
-export default router
-```
-
-```ts
-// main.ts
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-
-createApp(App).use(router).mount('#app')
-```
+> 📄 **Code ví dụ:** [`examples/04-2-cai-at-vue-router-4.ts`](examples/04-2-cai-at-vue-router-4.ts)
 
 > 💡 `npm create vue@latest` hỏi có cài router ngay khi tạo dự án — chọn "Yes" để được khung sẵn như trên.
 
@@ -83,74 +33,32 @@ createApp(App).use(router).mount('#app')
 
 ## 3. `<RouterLink>` và `<RouterView>`
 
-```vue
-<script setup>
-// App.vue
-import { RouterLink, RouterView } from 'vue-router'
-</script>
-
-<template>
-  <nav>
-    <!-- RouterLink render thành <a>, có class active/router-link-active -->
-    <RouterLink to="/">Trang chủ</RouterLink>
-    <RouterLink to="/about">Giới thiệu</RouterLink>
-    <RouterLink :to="{ name: 'post', params: { id: 42 } }">Bài #42</RouterLink>
-  </nav>
-
-  <!-- View tương ứng được render ở đây -->
-  <RouterView />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/05-3-routerlink-va-routerview.vue`](examples/05-3-routerlink-va-routerview.vue)
 
 - `to="/about"` — theo đường dẫn; `:to="{ name: 'about' }"` — theo tên route (khuyến nghị, chống hỏng khi đổi path).
 - `active-class` — đổi class active mặc định (`router-link-active`).
+
+> **Tóm gọn 1 câu:** `<RouterLink>` là "biển chỉ dẫn", `<RouterView>` là "sân khấu" — URL đổi, RouterView thay diễn viên theo.
 
 ---
 
 ## 4. Route động — tham số trong URL
 
-```ts
-const routes = [
-  { path: '/posts/:id', component: Post },
-  { path: '/users/:userId/posts/:postId', component: UserPost },  // nhiều tham số
-  { path: '/docs/:path(*)', component: Doc },                     // bắt mọi thứ còn lại
-]
-```
+Mục này nói về route có "khe tham số": một định danh kiểu `/user/:id` phục vụ vô số URL khác nhau — như một cửa hàng duy nhất tiếp mọi khách theo số hóa đơn.
 
-```vue
-<script setup>
-import { useRoute } from 'vue-router'
-import { watch } from 'vue'
+> 📄 **Code ví dụ:** [`examples/06-4-route-ong-tham-so-trong-url.ts`](examples/06-4-route-ong-tham-so-trong-url.ts)
 
-const route = useRoute()
-console.log(route.params.id)         // "42" — luôn là STRING, cần Number() nếu so sánh
-
-// Điều quan trọng: cùng component với params khác nhau KHÔNG bị unmount/remount
-watch(() => route.params.id, (newId) => {
-  fetchPost(newId)                   // tự reload dữ liệu khi id đổi
-})
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/07-4-route-ong-tham-so-trong-url.vue`](examples/07-4-route-ong-tham-so-trong-url.vue)
 
 ---
 
 ## 5. Lazy loading route (code splitting)
 
+Mục này nói về tối ưu quan trọng nhất khi app lớn: mỗi route một "kiện hàng" riêng — vào trang nào mới tải trang đó.
+
 Mỗi route một chunk riêng — trang chính tải nhẹ, chỉ tải view khi vào:
 
-```ts
-const routes = [
-  {
-    path: '/dashboard',
-    component: () => import('@/views/Dashboard.vue'),   // ⭐ lazy
-  },
-  // Nhóm route sang chung một chunk:
-  {
-    path: '/admin',
-    component: () => import(/* webpackChunkName: "admin" */ '@/views/Admin.vue'),
-  },
-]
-```
+> 📄 **Code ví dụ:** [`examples/08-5-lazy-loading-route-code-splitting.ts`](examples/08-5-lazy-loading-route-code-splitting.ts)
 
 > 💡 Đây là tối ưu quan trọng nhất khi dự án lớn lên. Ghi chú `/* webpackChunkName */` (Vite cũng hỗ trợ dạng `/* @vite-ignore */`-tuần tự qua cấu hình `manualChunks`).
 
@@ -158,68 +66,23 @@ const routes = [
 
 ## 6. Nested routes (route con)
 
-```ts
-const routes = [
-  {
-    path: '/user/:id',
-    component: User,
-    children: [
-      { path: 'profile', component: UserProfile },    // /user/42/profile
-      { path: 'posts', component: UserPosts },        // /user/42/posts
-      { path: '', component: UserHome },              // mặc định khi vào /user/42
-    ],
-  },
-]
-```
+Mục này nói về route "lồng nhau": route con render bên trong `<RouterView>` của route cha — như phòng lớn chứa phòng nhỏ, URL phản chiếu đúng cấu trúc.
 
-```vue
-<!-- User.vue — RouterView lồng nhau -->
-<template>
-  <h2>Người dùng #{{ route.params.id }}</h2>
-  <nav>
-    <RouterLink :to="`/user/${route.params.id}/profile`">Hồ sơ</RouterLink>
-    <RouterLink :to="`/user/${route.params.id}/posts`">Bài viết</RouterLink>
-  </nav>
-  <RouterView />   <!-- route con render ở đây -->
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/09-6-nested-routes-route-con.ts`](examples/09-6-nested-routes-route-con.ts)
+
+> 📄 **Code ví dụ:** [`examples/10-6-nested-routes-route-con.vue`](examples/10-6-nested-routes-route-con.vue)
 
 ---
 
 ## 7. Navigation guards — chặn trước khi chuyển trang
 
-```ts
-// Toàn cục — trước MỌI lần điều hướng
-router.beforeEach((to, from) => {
-  const auth = useAuthStore()
+Mục này nói về "trạm kiểm soát": guard chặn hành trình chuyển trang để kiểm tra đăng nhập, phân quyền... trước khi cho đi tiếp — giống cửa kiểm soát vé trước sảnh concert.
 
-  if (to.meta.requiresAuth && !auth.isLoggedIn) {
-    return { name: 'login', query: { redirect: to.fullPath } }   // hủy + chuyển hướng
-  }
-  // return true để cho phép đi tiếp; return false để hủy
-})
-```
+> 📄 **Code ví dụ:** [`examples/11-7-navigation-guards-chan-truoc-khi-chuyen-trang.ts`](examples/11-7-navigation-guards-chan-truoc-khi-chuyen-trang.ts)
 
-```ts
-// Trong route cụ thể
-{
-  path: '/admin',
-  beforeEnter: () => useAuthStore().isAdmin ? true : { name: 'forbidden' },
-}
-```
+> 📄 **Code ví dụ:** [`examples/12-7-navigation-guards-chan-truoc-khi-chuyen-trang.ts`](examples/12-7-navigation-guards-chan-truoc-khi-chuyen-trang.ts)
 
-```vue
-<!-- Trong component -->
-<script setup>
-import { onBeforeRouteLeave } from 'vue-router'
-
-onBeforeRouteLeave(() => {
-  if (formDirty.value) {
-    return window.confirm('Dữ liệu chưa lưu, chắc chắn rời trang?')
-  }
-})
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/13-7-navigation-guards-chan-truoc-khi-chuyen-trang.vue`](examples/13-7-navigation-guards-chan-truoc-khi-chuyen-trang.vue)
 
 Thứ tự chạy: `beforeEach` (toàn cục) → `beforeEnter` (route) → guard trong component (`beforeRouteEnter`/`beforeRouteUpdate`/`beforeRouteLeave`).
 
@@ -227,78 +90,45 @@ Thứ tự chạy: `beforeEach` (toàn cục) → `beforeEnter` (route) → guar
 
 ## 8. Programmatic navigation + đọc thông tin route
 
-```ts
-import { useRouter, useRoute } from 'vue-router'
+Mục này nói về điều hướng "bằng code thay vì bằng link": `router.push`/`replace` từ trong script, cùng cách đọc `route.params`, `route.query`.
 
-const router = useRouter()
-const route = useRoute()
-
-// Đi (giống RouterLink nhưng bằng code)
-router.push('/posts/42')
-router.push({ name: 'post', params: { id: 42 }, query: { tab: 'comments' } })
-router.replace('/login')     // không lưu vào history
-router.go(-1)                // quay lại
-
-// Đọc
-route.params.id        // tham số động
-route.query.page       // ?page=2
-route.hash             // #section
-route.meta             // dữ liệu tự gắn (requiresAuth...)
-route.name             // tên route
-```
+> 📄 **Code ví dụ:** [`examples/14-8-programmatic-navigation-oc-thong-tin-route.ts`](examples/14-8-programmatic-navigation-oc-thong-tin-route.ts)
 
 📌 Luật lịch sử: `push` thêm vào history (nút Back quay về được), `replace` thay thế mục hiện tại.
+
+> **Tóm gọn 1 câu:** Guard là "chặn trước khi đi", programmatic navigation là "điều khiển từ xa" — `push` giữ dấu chân trong history, `replace` xóa dấu.
 
 ---
 
 ## 9. Scroll behavior + meta
 
-```ts
-const router = createRouter({
-  history: createWebHistory(),
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) return savedPosition                    // Back/Forward giữ vị trí
-    if (to.hash) return { el: to.hash, behavior: 'smooth' }    // cuộn tới anchor
-    return { top: 0 }                                           // lên đầu trang
-  },
-})
-```
+Mục này nói về hai "tinh chỉnh" nhỏ cho trải nghiệm: cuộn trang đến đâu khi chuyển route, và gắn dữ liệu riêng (meta) lên từng route để guard đọc.
+
+> 📄 **Code ví dụ:** [`examples/15-9-scroll-behavior-meta.ts`](examples/15-9-scroll-behavior-meta.ts)
 
 ---
 
 ## 10. Use-cases thực tế
 
+Mục này là "hộp bài mẫu" cho bốn tình huống gặp thường nhật khi làm dự án thật.
+
 ### 404 route bắt mọi URL sai
 
-```ts
-{ path: '/:pathMatch(.*)*', name: 'not-found', component: NotFound }
-```
+> 📄 **Code ví dụ:** [`examples/16-404-route-bat-moi-url-sai.ts`](examples/16-404-route-bat-moi-url-sai.ts)
 
 ### Route nhớ tab qua query
 
-```ts
-// /settings?tab=security
-const tab = computed(() => route.query.tab ?? 'profile')
-```
+> 📄 **Code ví dụ:** [`examples/17-route-nho-tab-qua-query.ts`](examples/17-route-nho-tab-qua-query.ts)
 
 ### Đổi document title theo route
 
-```ts
-router.afterEach((to) => {
-  document.title = `${to.meta.title ?? 'Ứng dụng'} — MyApp`
-})
-```
+> 📄 **Code ví dụ:** [`examples/18-oi-document-title-theo-route.ts`](examples/18-oi-document-title-theo-route.ts)
 
 ### Guard đăng nhập (tóm tắt — chi tiết bài auth)
 
-```ts
-router.beforeEach((to) => {
-  const auth = useAuthStore()
-  if (to.meta.requiresAuth && !auth.isLoggedIn) {
-    return { name: 'login', query: { redirect: to.fullPath } }
-  }
-})
-```
+> 📄 **Code ví dụ:** [`examples/19-guard-ang-nhap-tom-tat-chi-tiet-bai.ts`](examples/19-guard-ang-nhap-tom-tat-chi-tiet-bai.ts)
+
+> **Tóm gọn 1 câu:** Bốn bài mẫu này chiếm 90% nhu cầu routing thực tế — 404, nhớ tab, đổi title, chặn đăng nhập; học theo mẫu là dùng được ngay.
 
 ---
 

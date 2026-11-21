@@ -1,0 +1,11 @@
+<script setup>
+import { ref } from 'vue'
+import Child from './Child.vue'
+
+const text = ref('')
+</script>
+
+<template>
+  <Child v-model="text" />
+  <p>{{ text }}</p>
+</template>

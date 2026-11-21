@@ -1,0 +1,18 @@
+<template>
+  <p>{{ formatDate(date) }}</p>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      date: '2026-01-16'
+    }
+  },
+  methods: {
+    formatDate(d) {
+      return new Date(d).toLocaleDateString()
+    }
+  }
+}
+</script>

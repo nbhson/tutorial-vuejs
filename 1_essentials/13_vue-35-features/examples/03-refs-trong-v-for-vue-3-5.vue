@@ -1,0 +1,14 @@
+<script setup>
+import { ref, useTemplateRef, onMounted } from 'vue'
+
+const list = ref([1, 2, 3])
+const itemRefs = useTemplateRef('items')
+
+onMounted(() => console.log(itemRefs.value)) // mảng các phần tử
+</script>
+
+<template>
+  <ul>
+    <li v-for="item in list" ref="items">{{ item }}</li>
+  </ul>
+</template>

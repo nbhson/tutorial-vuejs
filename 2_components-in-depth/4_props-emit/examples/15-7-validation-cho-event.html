@@ -1,0 +1,15 @@
+<script setup>
+const emit = defineEmits({
+  submit: ({ email, password }) => {
+    if (email && password) {
+      return true
+    }
+    console.warn('Invalid submit payload')
+    return false
+  }
+})
+
+function submitForm(email, password) {
+  emit('submit', { email, password })
+}
+</script>

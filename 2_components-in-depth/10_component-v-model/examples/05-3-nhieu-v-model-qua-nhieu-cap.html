@@ -1,0 +1,11 @@
+<script setup>
+const name = defineModel('name')
+const age = defineModel('age')
+</script>
+
+<template>
+  <Child1_1
+    v-model:name="name"
+    v-model:age="age"
+  />
+</template>

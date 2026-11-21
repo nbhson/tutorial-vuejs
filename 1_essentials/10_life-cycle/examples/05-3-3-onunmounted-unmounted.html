@@ -1,0 +1,16 @@
+<script setup>
+import { onMounted, onUnmounted } from 'vue'
+
+let timer
+
+onMounted(() => {
+  timer = setInterval(() => {
+    console.log('Đang chạy...')
+  }, 1000)
+})
+
+onUnmounted(() => {
+  clearInterval(timer)
+  console.log('Đã dọn dẹp timer')
+})
+</script>

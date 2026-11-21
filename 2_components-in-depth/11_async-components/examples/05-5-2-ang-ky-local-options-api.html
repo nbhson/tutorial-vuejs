@@ -1,0 +1,15 @@
+<script>
+import { defineAsyncComponent } from 'vue'
+
+export default {
+  components: {
+    AdminPage: defineAsyncComponent(() =>
+      import('./components/AdminPageComponent.vue')
+    )
+  }
+}
+</script>
+
+<template>
+  <AdminPage />
+</template>

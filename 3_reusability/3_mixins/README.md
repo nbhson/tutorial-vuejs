@@ -21,43 +21,23 @@
 
 ## 1. Mixin là gì?
 
+Mục này định nghĩa "món trộn": mixin là gói tùy chọn component được nhào vào nhiều component — như nêm sẵn gia vị chung cho nhiều nồi, tiện nhưng không ai nhìn ra món nào được nêm gì.
+
 **Mixin** là một object chứa tùy chọn component (`data`, `methods`, `computed`, lifecycle hooks...) được **"trộn" vào** nhiều component dùng chung.
 
-```js
-// mixins/hoverable.js
-export const hoverMixin = {
-  data() {
-    return { isHover: false }
-  },
-  methods: {
-    onMouseEnter() { this.isHover = true },
-    onLeave()      { this.isHover = false },
-  },
-}
-```
+> 📄 **Code ví dụ:** [`examples/01-1-mixin-la-gi.js`](examples/01-1-mixin-la-gi.js)
 
-```vue
-<script>
-// ❌ Style cũ — vẫn chạy trong Vue 3 nhưng KHÔNG khuyến nghị
-import { hoverMixin } from '@/mixins/hover'
-
-export default {
-  mixins: [hoverMixin],
-}
-</script>
-
-<template>
-  <div @mouseenter="isHover = true" @mouseleave="onHover(false)">
-    {{ isHover ? 'Đang hover' : '' }}
-  </div>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/02-1-mixin-la-gi.vue`](examples/02-1-mixin-la-gi.vue)
 
 Vấn đề ngay lập tức nhìn thấy: component dùng `isHover`/`onHover` mà **không khai báo ở đâu cả** — chúng đến từ mixin, "tàng hình" với người đọc code.
+
+> **Tóm gọn 1 câu:** Mixin là "gia vị nêm sẵn" — logic có mặt ở khắp nơi nhưng nguồn gốc thì tàng hình.
 
 ---
 
 ## 2. Quy tắc trộn (merge strategy)
+
+Mục này nói về "luật chia tài sản" khi component và mixin cùng có một tùy chọn: ai thắng, ai chạy trước đều có quy ước rõ ràng.
 
 Khi component và mixin có cùng tùy chọn, Vue quy ước:
 
@@ -68,23 +48,19 @@ Khi component và mixin có cùng tùy chọn, Vue quy ước:
 | `methods` / `computed` / `components` | Gộp object; **component thắng** khi trùng tên |
 | `watch` | Các watcher cùng tên đều chạy |
 
-```js
-const mixin = {
-  data: () => ({ shared: 'từ mixin' }),
-  created() { console.log('mixin hook') },
-}
-export default {
-  mixins: [mixin],
-  data: () => ({ shared: 'của component' }),   // đè lên nếu trùng tên
-  created() { console.log('hook component chạy SAU mixin') },
-}
-```
+> **Cách đọc bảng này:** cột trái là tùy chọn bị trùng, cột phải là phán quyết của Vue — nhớ quy tắc chung: hầu hết các trường hợp component thắng, riêng lifecycle thì cả hai cùng chạy.
+
+> **Tóm gọn 1 câu:** Khi trùng tên, component luôn thắng trừ lifecycle — cả hai hook cùng chạy, mixin chạy trước.
+
+> 📄 **Code ví dụ:** [`examples/03-2-quy-tac-tron-merge-strategy.js`](examples/03-2-quy-tac-tron-merge-strategy.js)
 
 📌 **Dấu hiệu nhận biết khi đọc code cũ:** một component "tự nhiên" có method/hook bạn không thấy khai báo ở đâu → nghi ngờ mixin. Tìm `mixins: [...]` trong file và mở mixin đó ra.
 
 ---
 
 ## 3. Bẫy của mixins — vì sao bị "ghét"
+
+Mục này điểm danh năm "tội" khiến mixins bị ghi danh thành legacy — mỗi bẫy là một lần bạn ngồi debug mà không tìm ra nguồn gốc code.
 
 | Bẫy | Mô tả |
 |---|---|
@@ -94,63 +70,29 @@ export default {
 | **Không có kiểu** | TypeScript không suy luận được dữ liệu mixin cung cấp |
 | **Khó tái sử dụng có chọn lọc** | Không thể "lấy mỗi `formatter()` của mixin" — nhận cả xà lách |
 
+> **Cách đọc bảng này:** năm hàng là năm cách mixin "gài bẫy" — cột Mô tả nói rõ nó biểu hiện ra sao khi bạn đọc code; đọc từ trên xuống sẽ thấy chúng đều xuất phát từ một gốc: nguồn logic không tường minh.
+
 Cùng một logic "hover" viết theo 2 cách để so sánh:
 
 ### Mixin (cũ)
 
-```js
-// hoverMixin.js — ai dùng mixin này biết gì về nó?
-export const hoverMixin = {
-  data: () => ({ isHover: false }),
-  methods: {
-    onEnter() { this.isHover = true },
-    onLeave() { this.isHover = false },
-  },
-}
-```
+> 📄 **Code ví dụ:** [`examples/04-mixin-cu.js`](examples/04-mixin-cu.js)
 
-```vue
-<!-- ❌ Không nhìn được là isHover từ đâu ra -->
-<script>
-export default {
-  mixins: [hoverMixin],
-  template: `<div @mouseenter="onEnter">{{ isHover }}</div>`,
-}
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/05-mixin-cu.vue`](examples/05-mixin-cu.vue)
 
 ### Composable tương đương
 
-```ts
-// composables/useHover.ts
-import { ref } from 'vue'
+> 📄 **Code ví dụ:** [`examples/06-composable-tuong-uong.ts`](examples/06-composable-tuong-uong.ts)
 
-export function useHover() {
-  const isHover = ref(false)
-  return {
-    isHover,
-    onEnter: () => (isHover.value = true),
-    onLeave: () => (isHover.value = false),
-  }
-}
-```
+> 📄 **Code ví dụ:** [`examples/07-composable-tuong-uong.vue`](examples/07-composable-tuong-uong.vue)
 
-```vue
-<!-- ✅ Rõ nguồn gốc, có kiểu, tự đặt tên biến -->
-<script setup>
-import { useHover } from '@/composables/useHover'
-
-const { isHover, onEnter, onLeave } = useHover()
-</script>
-
-<template>
-  <div @mouseenter="onEnter" @mouseleave="onLeave">{{ isHover }}</div>
-</template>
-```
+> **Tóm gọn 1 câu:** So sánh hai đoạn code là thấy ngay: cùng một logic hover, composable để lại dấu vết rõ ràng còn mixin để lại "vết ma" trong component.
 
 ---
 
 ## 4. Dẫn đường nâng cấp mixin → composable
+
+Mục này là "sổ tay phẫu thuật": chuyển từng bộ phận của mixin (data, computed, methods, hooks) sang hình thái tương ứng của composable.
 
 Quy trình từng bước cho một mixin điển hình:
 
@@ -166,52 +108,21 @@ mixins/fetch-user.js  (Vue 2)
 composables/useFetchUser.ts (Vue 3)
 ```
 
-```ts
-// Trước: mixins/fetch-user.js
-export default {
-  data: () => ({ user: null, loading: false }),
-  created() { this.fetchUser(this.$route.params.id) },
-  methods: {
-    async fetchUser(id) {
-      this.loading = true
-      this.user = await fetchUserById(id)
-      this.loading = false
-    },
-  },
-}
-```
+> 📄 **Code ví dụ:** [`examples/08-4-dan-uong-nang-cap-mixin-composable.ts`](examples/08-4-dan-uong-nang-cap-mixin-composable.ts)
 
-```ts
-// Sau: composables/useUser.ts
-import { ref } from 'vue'
-import { fetchUserById } from '@/api/users'
+> 📄 **Code ví dụ:** [`examples/09-4-dan-uong-nang-cap-mixin-composable.ts`](examples/09-4-dan-uong-nang-cap-mixin-composable.ts)
 
-export function useUser(userId: string | number) {
-  const user = ref<User | null>(null)
-  const loading = ref(false)
-
-  async function load() {
-    loading.value = true
-    user.value = await fetchUserById(userId)
-    loading.value = false
-  }
-  onMounted(load)
-
-  return { user, loading, reload: load }
-}
-```
-
-```vue
-<script setup>
-const { user, loading } = useUser(route.params.id)
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/10-4-dan-uong-nang-cap-mixin-composable.vue`](examples/10-4-dan-uong-nang-cap-mixin-composable.vue)
 
 📌 Lợi ích thấy ngay khi refactor: composable trả về **đúng những gì component cần** — không còn "trôi" data/method thừa, đồng thời có type và auto-complete.
+
+> **Tóm gọn 1 câu:** Nâng cấp mixin là "tháo đồ khỏi thùng chung, chia từng hộp có nhãn": data → ref, computed → computed(), methods → hàm, hooks → onMounted/onUnmounted.
 
 ---
 
 ## 5. Bảng tổng hợp — mixins vs composables
+
+Mục này là "phiên tòa cuối cùng" so sánh hai pattern qua sáu tiêu chí — đọc xong bạn sẽ hiểu vì sao Vue chính thức chuyển hướng.
 
 | Tiêu chí | Mixin | Composable |
 |---|---|---|
@@ -222,9 +133,13 @@ const { user, loading } = useUser(route.params.id)
 | Tái sử dụng chọn lọc | Không | Có — gọi đúng hàm cần |
 | Tư cách trong Vue 3 | Hoạt động, **không khuyến nghị** | ✅ Khuyến nghị chính thức |
 
+> **Cách đọc bảng này:** so sánh theo cột — mỗi dòng là một tiêu chí, nhìn sang cột Composable sẽ thấy mọi nhược điểm của mixin đều được hóa giải; đọc từ trên xuống là một màn trình diễn "mixin thua từng hiệp".
+
 ---
 
 ## 6. Trường hợp "mixins vẫn ổn"?
+
+Mục này là góc ngoại lệ: hai tình huống hiếm hoi mà giữ mixin tạm thời là quyết định hợp lý — và cách chuyển dần an toàn.
 
 Trong thực tế hiếm khi cần giữ mixin, trừ khi:
 
@@ -232,6 +147,8 @@ Trong thực tế hiếm khi cần giữ mixin, trừ khi:
 - Code cũ rất lớn, chưa kịp refactor — **giữ nguyên mixin, tài liệu hóa, lên kế hoạch chuyển dần**. Đừng sửa một lúc cả nghìn dòng.
 
 Quy tắc thực chiến: **tính năng mới không dùng mixin nữa**; mixin cũ chỉ chạm vào khi sửa chức năng liên quan, mỗi lần chạm thì chuyển dần sang composable.
+
+> **Tóm gọn 1 câu:** Mixin cũ như đồ đạc cũ trong nhà — không vội đập bỏ hết, nhưng mua sắm mới thì nhất định mua kiểu composable.
 
 ---
 

@@ -1,0 +1,3 @@
+setTimeout(() => {
+  watchEffect(() => {})
+}, 100)

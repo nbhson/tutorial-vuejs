@@ -1,0 +1,1 @@
+watch(obj.count, () => {})

@@ -1,0 +1,1 @@
+emit('update-user', newUser)

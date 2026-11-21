@@ -1,0 +1,8 @@
+<!-- Ctrl (kể cả thêm phím) -->
+<button @click.ctrl="onClick">Ctrl</button>
+
+<!-- Chỉ Ctrl -->
+<button @click.ctrl.exact="onCtrlClick">Chỉ Ctrl</button>
+
+<!-- Không có phím phụ -->
+<button @click.exact="onClick">Không có phím phụ</button>

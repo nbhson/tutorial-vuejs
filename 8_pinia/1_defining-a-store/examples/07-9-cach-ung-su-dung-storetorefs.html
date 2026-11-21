@@ -1,0 +1,12 @@
+<script setup>
+import { useCounterStore } from '@/stores/counter'
+import { storeToRefs } from 'pinia'
+
+const store = useCounterStore()
+
+// ✅ Đúng: count và doubleCount vẫn giữ tính reactive
+const { count, doubleCount } = storeToRefs(store)
+
+// ✅ Đúng: actions có thể destructure trực tiếp vì chúng là các hàm
+const { increment } = store
+</script>

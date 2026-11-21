@@ -1,0 +1,11 @@
+<script setup>
+import { ref } from 'vue'
+const type = ref('B')
+</script>
+
+<template>
+  <div v-if="type === 'A'">Loại A</div>
+  <div v-else-if="type === 'B'">Loại B</div>
+  <div v-else-if="type === 'C'">Loại C</div>
+  <div v-else>Không thuộc loại nào</div>
+</template>

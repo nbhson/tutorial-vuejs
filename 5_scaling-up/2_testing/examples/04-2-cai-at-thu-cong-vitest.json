@@ -1,0 +1,8 @@
+// package.json
+{
+  "scripts": {
+    "test:unit": "vitest",
+    "test:unit:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  }
+}

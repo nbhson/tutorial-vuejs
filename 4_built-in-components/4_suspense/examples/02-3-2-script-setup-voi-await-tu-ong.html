@@ -1,0 +1,13 @@
+<script setup>
+// Vue tự động hiểu đây là async component
+const res = await fetch('https://api.example.com/posts')
+const posts = await res.json()
+</script>
+
+<template>
+  <ul>
+    <li v-for="post in posts" :key="post.id">
+      {{ post.title }}
+    </li>
+  </ul>
+</template>

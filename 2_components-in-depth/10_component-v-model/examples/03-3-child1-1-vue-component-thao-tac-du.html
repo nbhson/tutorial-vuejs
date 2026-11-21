@@ -1,0 +1,12 @@
+<script setup>
+const model = defineModel()
+
+function increment() {
+  model.value++
+}
+</script>
+
+<template>
+  <h4>Child1_1</h4>
+  <button @click="increment">+</button>
+</template>

@@ -6,10 +6,14 @@ Dưới đây là bản tóm tắt đầy đủ – chi tiết – dễ hiểu b
 
 ## 1. Template Syntax là gì?
 
+Mục này nói về "ngôn ngữ chung" giữa HTML của bạn và dữ liệu trong component. Đọc để hiểu bức tranh tổng thể trước khi đi vào từng cú pháp cụ thể.
+
 ### Ý chính
 - Vue sử dụng **HTML-based template syntax**.
 - Cho phép **liên kết dữ liệu (data binding)** giữa giao diện (DOM) và dữ liệu trong component.
 - Vue sẽ **compile template** thành JavaScript tối ưu, chỉ render lại những phần cần thiết khi dữ liệu thay đổi.
+
+Ví von: template là **bản hợp đồng giữa bạn và Vue** — bạn ghi rõ "ô này hiện dữ liệu gì", Vue ký và cam kết tự lo phần cập nhật mỗi khi dữ liệu đổi.
 
 > 👉 **Tóm lại:** Bạn viết HTML quen thuộc, Vue tự lo phần cập nhật giao diện.
 
@@ -23,21 +27,7 @@ Dưới đây là bản tóm tắt đầy đủ – chi tiết – dễ hiểu b
 - Khi dữ liệu thay đổi → giao diện tự động cập nhật.
 
 ### Ví dụ
-```html
-<template>
-  <span>Message: {{ msg }}</span>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      msg: 'Hello Vue!'
-    }
-  }
-}
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/01-vi-du.html`](examples/01-vi-du.html)
 
 > 👉 **Hiển thị:**
 > `Message: Hello Vue!`
@@ -46,29 +36,18 @@ export default {
 
 ## 3. Raw HTML – `v-html`
 
+Mục này nói về trường hợp đặc biệt: khi bạn muốn Vue render **thật** một đoạn HTML thay vì chỉ hiện text. Đọc kỹ phần cảnh báo — đây là chỗ dễ dính lỗi bảo mật nhất của Vue.
+
 ### Ý chính
 - Cú pháp `{{ }}` chỉ hiển thị text, **KHÔNG** render HTML.
 - Muốn render HTML thực sự → dùng directive `v-html`.
 
+Ví von: `{{ }}` giống như **khung ảnh in chữ** — chuỗi gì đưa vào cũng chỉ là chữ. `v-html` là **khung kính không lọc**: nó thiệt sự "gắn đồ" vào trang, nên ai đưa đồ vào (dữ liệu người dùng nhập) cũng phải soi kỹ, kẻo kẻ xấu gắn cài bẫy (XSS).
+
 > ⚠️ **Cảnh báo:** Rất nguy hiểm nếu dùng với dữ liệu do người dùng nhập vào (nguy cơ tấn công **XSS**).
 
 ### Ví dụ
-```html
-<template>
-  <p>{{ rawHtml }}</p>
-  <p v-html="rawHtml"></p>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      rawHtml: '<span style="color:red">Vue rất tuyệt!</span>'
-    }
-  }
-}
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/02-vi-du.html`](examples/02-vi-du.html)
 
 > 👉 **Kết quả:**
 > - Dòng 1: in ra chuỗi HTML dưới dạng text thuần.
@@ -85,21 +64,7 @@ export default {
 - Phải dùng directive `v-bind` để bind giá trị cho thuộc tính.
 
 ### Ví dụ
-```html
-<template>
-  <div v-bind:id="dynamicId"></div>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      dynamicId: 'app-container'
-    }
-  }
-}
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/03-vi-du.html`](examples/03-vi-du.html)
 
 > 👉 **Kết quả HTML:**
 > ```html
@@ -109,16 +74,12 @@ export default {
 ### 4.1 Shorthand của `v-bind` (Dấu `:`)
 Đây là cách viết tắt phổ biến và chuẩn mực nhất trong Vue.
 
-```html
-<div :id="dynamicId"></div>
-```
+> 📄 **Code ví dụ:** [`examples/04-4-1-shorthand-cua-v-bind-dau.html`](examples/04-4-1-shorthand-cua-v-bind-dau.html)
 
 ### 4.2 Same-name Shorthand (Vue 3.4+)
 Nếu tên attribute giống hệt tên biến, bạn có thể viết gọn hơn nữa:
 
-```html
-<div :id></div>
-```
+> 📄 **Code ví dụ:** [`examples/05-4-2-same-name-shorthand-vue-3-4.html`](examples/05-4-2-same-name-shorthand-vue-3-4.html)
 > 👉 Tương đương với:
 > ```html
 > <div :id="id"></div>
@@ -133,17 +94,9 @@ Nếu tên attribute giống hệt tên biến, bạn có thể viết gọn hơ
 - Sự hiện diện của attribute phụ thuộc vào giá trị là **truthy** hay **falsy**.
 
 ### Ví dụ
-```html
-<button :disabled="isDisabled">Submit</button>
-```
+> 📄 **Code ví dụ:** [`examples/06-vi-du.html`](examples/06-vi-du.html)
 
-```javascript
-data() {
-  return {
-    isDisabled: true
-  }
-}
-```
+> 📄 **Code ví dụ:** [`examples/07-vi-du.js`](examples/07-vi-du.js)
 
 > 👉 **Kết quả:** Button sẽ bị vô hiệu hóa (`disabled`).
 
@@ -156,25 +109,7 @@ data() {
 - Sử dụng `v-bind="objectOfAttrs"`.
 
 ### Ví dụ
-```html
-<template>
-  <div v-bind="attrs"></div>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      attrs: {
-        id: 'box',
-        class: 'container',
-        style: 'background: green'
-      }
-    }
-  }
-}
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/08-vi-du.html`](examples/08-vi-du.html)
 
 > 👉 **Kết quả HTML:**
 > ```html
@@ -185,26 +120,19 @@ export default {
 
 ## 7. Using JavaScript Expressions
 
+Mục này phân định ranh giới quan trọng: trong template được xài **biểu thức** nhưng không được xài **câu lệnh**. Đọc để khỏi bất ngờ khi code không chạy.
+
 ### Ý chính
 - Vue cho phép sử dụng các **biểu thức JavaScript (Expressions)** bên trong `{{ }}` hoặc `v-bind`.
 - **KHÔNG** cho phép sử dụng các câu lệnh (Statements) như `if`, `for`, `var`, `while`, v.v.
 
+Ví von: template giống như **máy tính bỏ túi** — nó tính được `2 + 3`, `a * b`, thậm chí `ok ? 'yes' : 'no'`, nhưng không phải máy tính lập trình nên không chấp nhận "chương trình" (if, for, var).
+
 ### Ví dụ hợp lệ
-```html
-<p>{{ number + 1 }}</p>
-<p>{{ ok ? 'YES' : 'NO' }}</p>
-<p>{{ message.split('').reverse().join('') }}</p>
-<div :id="`item-${id}`"></div>
-```
+> 📄 **Code ví dụ:** [`examples/09-vi-du-hop-le.html`](examples/09-vi-du-hop-le.html)
 
 ### Ví dụ KHÔNG hợp lệ
-```html
-<!-- Đây là khai báo biến, không phải biểu thức -->
-{{ var a = 1 }}
-
-<!-- Luồng điều khiển sẽ không hoạt động, hãy dùng toán tử 3 ngôi -->
-{{ if (ok) { return msg } }}
-```
+> 📄 **Code ví dụ:** [`examples/10-vi-du-khong-hop-le.html`](examples/10-vi-du-khong-hop-le.html)
 
 ---
 
@@ -215,26 +143,7 @@ export default {
 - ⚠️ **Lưu ý:** Hàm sẽ được gọi lại mỗi khi component re-render, do đó **không nên** để hàm thực hiện các tác vụ nặng (side-effects) như gọi API hay thay đổi dữ liệu.
 
 ### Ví dụ
-```html
-<template>
-  <p>{{ formatDate(date) }}</p>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      date: '2026-01-16'
-    }
-  },
-  methods: {
-    formatDate(d) {
-      return new Date(d).toLocaleDateString()
-    }
-  }
-}
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/11-vi-du.html`](examples/11-vi-du.html)
 
 ---
 
@@ -246,30 +155,24 @@ export default {
 - **Không thể** truy cập trực tiếp các biến người dùng tự định nghĩa trên `window` (ví dụ `window.alert` sẽ không chạy trừ khi khai báo rõ).
 
 ### Ví dụ
-```html
-<p>{{ Math.max(5, 10) }}</p>
-```
+> 📄 **Code ví dụ:** [`examples/12-vi-du.html`](examples/12-vi-du.html)
 
 ---
 
 ## 10. Directives (`v-`)
 
+Mục này giới thiệu "họ nhà `v-`" — gia đình directive là trái tim của toàn bộ template Vue. Các mục sau (argument, dynamic argument, modifier) đều xoay quanh họ nhà này.
+
 ### Ý chính
 - Directive là các thuộc tính đặc biệt bắt đầu bằng tiền tố `v-`.
 - Nhiệm vụ: Thao tác lên DOM một cách reactive khi giá trị của expression thay đổi.
 
-### Ví dụ
-```html
-<p v-if="seen">Bạn thấy tôi rồi!</p>
-```
+Ví von: directive là **tên lệnh viết trên giấy dán lên thẻ HTML** — Vue đọc tên lệnh đó và tự sắp xếp lại thẻ (xóa, thêm, đổi thuộc tính) mỗi khi dữ liệu liên quan đổi.
 
-```javascript
-data() {
-  return {
-    seen: true
-  }
-}
-```
+### Ví dụ
+> 📄 **Code ví dụ:** [`examples/13-vi-du.html`](examples/13-vi-du.html)
+
+> 📄 **Code ví dụ:** [`examples/14-vi-du.js`](examples/14-vi-du.js)
 > Nếu `seen` là `false`, thẻ `<p>` sẽ bị xóa khỏi DOM.
 
 ---
@@ -280,18 +183,10 @@ data() {
 Một số directive nhận thêm "tham số" (argument), được viết sau dấu hai chấm `:`.
 
 ### Ví dụ `v-bind`
-```html
-<a v-bind:href="url">Vue</a>
-<!-- Shorthand -->
-<a :href="url">Vue</a>
-```
+> 📄 **Code ví dụ:** [`examples/15-vi-du-v-bind.html`](examples/15-vi-du-v-bind.html)
 
 ### Ví dụ `v-on` (Lắng nghe sự kiện)
-```html
-<button v-on:click="submit">Submit</button>
-<!-- Shorthand -->
-<button @click="submit">Submit</button>
-```
+> 📄 **Code ví dụ:** [`examples/16-vi-du-v-on-lang-nghe-su-kien.html`](examples/16-vi-du-v-on-lang-nghe-su-kien.html)
 
 ---
 
@@ -302,18 +197,9 @@ Một số directive nhận thêm "tham số" (argument), được viết sau d�
 - Cú pháp: Sử dụng dấu ngoặc vuông `[]`.
 
 ### Ví dụ
-```html
-<a :[attrName]="url">Link</a>
-```
+> 📄 **Code ví dụ:** [`examples/17-vi-du.html`](examples/17-vi-du.html)
 
-```javascript
-data() {
-  return {
-    attrName: 'href',
-    url: 'https://vuejs.org'
-  }
-}
-```
+> 📄 **Code ví dụ:** [`examples/18-vi-du.js`](examples/18-vi-du.js)
 > Kết quả sẽ tương đương với `<a href="https://vuejs.org">`.
 
 ---
@@ -325,11 +211,7 @@ data() {
 - Dùng để thay đổi hành vi mặc định của directive.
 
 ### Ví dụ
-```html
-<form @submit.prevent="onSubmit">
-  <button>Submit</button>
-</form>
-```
+> 📄 **Code ví dụ:** [`examples/19-vi-du.html`](examples/19-vi-du.html)
 > 👉 `.prevent` tương đương với việc gọi `event.preventDefault()` trong JavaScript.
 
 ---
@@ -342,3 +224,5 @@ data() {
 - [x] **v-on** (hoặc `@`): Dùng để bắt sự kiện.
 - [x] Có thể dùng **JavaScript Expression**, nhưng không dùng **Statement**.
 - [x] **Directive** (v-...) là nền tảng cốt lõi của Vue template.
+
+> **Tóm gọn 1 câu:** Template Vue = HTML quen thuộc + vài "từ lệnh": `{{ }}` hiện chữ, `:` gắn dữ liệu, `@` bắt sự kiện, `v-` thao tác DOM.

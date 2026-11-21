@@ -1,0 +1,12 @@
+<script setup>
+// Định nghĩa directive v-focus
+const vFocus = {
+  mounted(el) {
+    el.focus()
+  }
+}
+</script>
+
+<template>
+  <input v-focus />
+</template>

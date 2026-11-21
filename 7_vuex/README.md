@@ -15,12 +15,20 @@
 
 ## Vai trò của thư mục này
 
+Mục này trả lời câu hỏi "thư mục này còn để làm gì": Vuex đã ngừng phát triển, nhưng nội dung được giữ lại cho hai nhu cầu cụ thể — đọc code cũ và migration. Người mới bắt đầu không cần đi qua đây.
+
 Nội dung các bài trong `7_vuex` được **giữ lại làm tài liệu legacy**, phục vụ hai nhu cầu:
 
 1. **Đọc hiểu code cũ** — dự án của bạn vẫn chạy Vuex và cần bảo trì.
 2. **Migration Vuex → Pinia** — đối chiếu từng khái niệm (state, getters, mutations, actions, modules).
 
+Ví von: đây là bảo tàng — vào xem để hiểu đồ cổ (code cũ), chứ không mua về dùng làm đồ mới.
+
+> **Tóm gọn 1 câu:** Thư mục này là tài liệu legacy: giữ Vuex để đọc code cũ và migrate — dự án mới học thẳng Pinia.
+
 ## Cấu trúc các bài
+
+Mục này là mục lục mini của bảo tàng: mỗi bài Vuex một khái niệm, kèm "vật tương đương" ở Pinia để bạn tra chéo.
 
 | Bài | Nội dung | Tương đương trong Pinia |
 |---|---|---|
@@ -30,7 +38,11 @@ Nội dung các bài trong `7_vuex` được **giữ lại làm tài liệu lega
 | [`4_action`](4_action/README.md) | Logic nghiệp vụ, async, `dispatch` | Actions — [`8_pinia/4_actions`](../8_pinia/4_actions/README.md) |
 | [`5_module`](5_module/README.md) | Chia store lớn thành module (`namespaced`) | Nhiều store độc lập theo domain |
 
+> **Cách đọc bảng này:** cột giữa là khái niệm Vuex (đọc để hiểu code cũ), cột phải là "nơi nó về" ở Pinia (đọc khi migrate). Dòng mutations là quan trọng nhất — nó bị xóa chứ không chuyển đổi.
+
 ## Lộ trình migration nhanh
+
+Mục này gom lộ trình 5 bước vào một sơ đồ — in ra dán cạnh màn hình khi migrate là đủ.
 
 ```
 Vuex store
@@ -42,6 +54,8 @@ Vuex store
 ```
 
 Chi tiết từng bước: [`8_pinia/VUEX-vs-PINIA.md`](../8_pinia/VUEX-vs-PINIA.md).
+
+> **Tóm gọn 1 câu:** Vuex đã vào "chế độ bảo tàng" — đọc để hiểu code cũ, migrate theo sơ đồ state → ref, getters → computed, mutations → xóa, modules → store riêng.
 
 ## Tài liệu chính thức
 

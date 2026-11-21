@@ -7,155 +7,59 @@
 
 ## 1. Interceptor là gì?
 
+Mục này định nghĩa khái niệm trọng tâm của bài: interceptor là "trạm kiểm soát" mà mọi request/response phải đi qua. Đọc để hiểu vì sao nó giúp bạn xóa hàng loạt code lặp.
+
+Ví von: interceptor như trạm thu phí trên cao tốc — thay vì mỗi cửa nhà thu phí riêng, mọi xe đều qua một trạm duy nhất.
+
 **Interceptor** là hàm chạy **trước khi request đi ra** hoặc **khi response về tới** — cho phép xử lý xuyên suốt (tự động thêm token, refresh token, log, dịch lỗi...) **tại một chỗ duy nhất** thay vì lặp code trong từng component.
 
-```ts
-import { api } from './client'
-
-// Chạy trước MỌI request
-api.interceptors.request.use(
-  (config) => {
-    // thêm header, log, đếm request đang chạy...
-    return config                 // BẮT BUỘC return config
-  },
-  (error) => Promise.reject(error)
-)
-
-// Chạy khi NHẬN response (hoặc lỗi)
-api.interceptors.response.use(
-  (response) => response,         // status 2xx
-  (error) => Promise.reject(error) // status ≥ 400, lỗi mạng...
-)
-```
+> 📄 **Code ví dụ:** [`examples/01-1-interceptor-la-gi.ts`](examples/01-1-interceptor-la-gi.ts)
 
 📌 Có thể đăng ký **nhiều** interceptor cho cùng một instance — chúng chạy theo thứ tự đăng ký (FIFO với request, LIFO với response).
+
+> **Tóm gọn 1 câu:** Interceptor là trạm kiểm soát tập trung: mọi request đi ra và response về tới đều lướt qua một chỗ duy nhất để gắn token, log hay dịch lỗi.
 
 ---
 
 ## 2. Request interceptor — tự động gắn token
 
-Đây là use-case phổ biến nhất: mọi request cần header `Authorization`.
+Mục này là use-case "quốc dân" của interceptor: ai cũng cần gắn `Authorization` vào mọi request, và không ai muốn gõ dòng đó 50 lần trong code.
 
-```ts
-// api/client.ts
-import axios from 'axios'
+Đây là use-case phổ biến nhất: mọi request cần header `Authorization`. Giống như thẻ từ công ty tự quẹt ở mọi cửa — bạn không phải xuất trình tay từng lần.
 
-export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL })
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-```
+> 📄 **Code ví dụ:** [`examples/02-2-request-interceptor-tu-ong-gan-token.ts`](examples/02-2-request-interceptor-tu-ong-gan-token.ts)
 
 📌 **Đọc token lúc gửi** (không cache khi tạo interceptor) — để interceptor luôn dùng token mới nhất sau khi đăng nhập lại.
 
 ### Idempotency-Key, ngôn ngữ, tenant
 
-```ts
-api.interceptors.request.use((config) => {
-  config.headers['Accept-Language'] = localStorage.getItem('lang') ?? 'vi'
-  if (config.method === 'post') {
-    config.headers['Idempotency-Key'] = crypto.randomUUID()   // chống tạo trùng khi retry
-  }
-  return config
-})
-```
+> 📄 **Code ví dụ:** [`examples/03-idempotency-key-ngon-ngu-tenant.ts`](examples/03-idempotency-key-ngon-ngu-tenant.ts)
 
 ---
 
 ## 3. Response interceptor — chuẩn hóa lỗi
 
+Mục này nói về phía "đường về": thay vì mỗi component tự dịch lỗi thành thông báo, interceptor dịch một lần cho cả app — như một đầu giờ giải thích đồng loạt thay vì từng người tự hỏi.
+
 Thay vì mỗi component xử lý `e.response.status`, interceptor dịch lỗi về **thông điệp tiếng Việt** và trả lỗi đồng nhất:
 
-```ts
-// api/errors.ts
-import { api } from './client'
+> 📄 **Code ví dụ:** [`examples/04-3-response-interceptor-chuan-hoa-loi.ts`](examples/04-3-response-interceptor-chuan-hoa-loi.ts)
 
-export class ApiError extends Error {
-  status: number
-  constructor(message: string, status: number) {
-    super(message)
-    this.status = status
-  }
-}
+> 📄 **Code ví dụ:** [`examples/05-3-response-interceptor-chuan-hoa-loi.vue`](examples/05-3-response-interceptor-chuan-hoa-loi.vue)
 
-api.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    const status = error?.response?.status
-    const messages = {
-      400: 'Dữ liệu gửi đi không hợp lệ',
-      401: 'Phiên đăng nhập hết hạn',
-      403: 'Bạn không có quyền thực hiện',
-      404: 'Không tìm thấy tài nguyên',
-      422: 'Dữ liệu chưa đúng định dạng',
-      500: 'Lỗi máy chủ, vui lòng thử lại',
-    }
-    const message = messages[status] ?? error.message
-    return Promise.reject(new ApiError(message, status))
-  }
-)
-```
-
-```vue
-<!-- Component giờ chỉ cần hiển thị thông điệp đã "dịch" -->
-<script setup>
-import { api } from '@/api/client'
-
-try {
-  await api.get('/orders')
-} catch (e) {
-  toast.error(e.message)       // "Bạn không có quyền thực hiện"...
-}
-</script>
-```
+> **Tóm gọn 1 câu:** Response interceptor là "phiên dịch viên duy nhất" của app — dịch lỗi server thành thông điệp UI một lần, mọi component hưởng.
 
 ---
 
 ## 4. Pattern phổ biến: log + đếm request đang chạy
 
-```ts
-// Cấu hình dùng chung: hiện "đang tải" khi còn bất kỳ request nào
-let pending = 0
+Mục này dựng pattern "bảng điện tổng": interceptor đếm số request đang chạy để bật/tắt spinner chung, và log mọi request đi qua — không phải rải spinner từng trang.
 
-api.interceptors.request.use((config) => {
-  if (++pending === 1) window.dispatchEvent(new Event('app:loading-on'))
-  return config
-})
-
-api.interceptors.response.use(
-  (res) => {
-    if (--pending === 0) window.dispatchEvent(new Event('app:loading-off'))
-    return res
-  },
-  (error) => {
-    if (--pending === 0) window.dispatchEvent(new Event('app:loading-off'))
-    return Promise.reject(error)
-  }
-)
-```
+> 📄 **Code ví dụ:** [`examples/06-4-pattern-pho-bien-log-em-request-ang.ts`](examples/06-4-pattern-pho-bien-log-em-request-ang.ts)
 
 Và trong component root hoặc store UI:
 
-```vue
-<script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-
-const loading = ref(false)
-const on = () => (loading.value = true)
-const off = () => (loading.value = false)
-
-onMounted(() => {
-  window.addEventListener('app:loading-on', on)
-  window.addEventListener('app:loading-off', off)
-})
-// Nhớ remove trong onUnmounted để tránh leak
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/07-4-pattern-pho-bien-log-em-request-ang.vue`](examples/07-4-pattern-pho-bien-log-em-request-ang.vue)
 
 > 💡 Với dự án dùng Pinia: thay `dispatchEvent` bằng một store `ui` với state `isLoading` — interceptor chỉ gọi `uiStore.start()`/`uiStore.stop()`. Chi tiết: [`8_pinia`](../../8_pinia/README.md).
 
@@ -163,26 +67,11 @@ onMounted(() => {
 
 ## 5. Interceptor + refresh token (tổng quan, chi tiết ở bài sau)
 
+Mục này mở màn cho vở kịch phổ biến nhất: token hết hạn (401) — interceptor tự đổi token mới rồi gửi lại request gốc, người dùng không hề hay biết. Ví von: chìa khóa từ chốt — có người đứng sẵn đổi chìa giúp bạn, bạn vẫn vào cửa bình thường.
+
 Mỗi lần nhận `401`, interceptor cố gắng **làm mới token** rồi gửi lại request gốc:
 
-```ts
-let refreshing: Promise<string> | null = null
-
-api.interceptors.response.use(undefined, async (error) => {
-  if (error.response?.status !== 401) return Promise.reject(error)
-
-  refreshing ??= refreshToken()          // chỉ 1 request refresh tại một thời điểm
-  try {
-    const token = await refreshing
-    error.config.headers.Authorization = `Bearer ${token}`
-    return api(error.config)             // gửi lại request gốc
-  } catch {
-    // refresh cũng thất bại → đăng xuất
-  } finally {
-    refreshing = null
-  }
-})
-```
+> 📄 **Code ví dụ:** [`examples/08-5-interceptor-refresh-token-tong-quan-chi-tiet.ts`](examples/08-5-interceptor-refresh-token-tong-quan-chi-tiet.ts)
 
 Chi tiết đầy đủ (lưu token, logout, tránh vòng lặp refresh): [`3_auth`](../3_auth/README.md).
 
@@ -190,17 +79,15 @@ Chi tiết đầy đủ (lưu token, logout, tránh vòng lặp refresh): [`3_au
 
 ## 6. Hủy và loại bỏ interceptor
 
-```ts
-// Hủy khi không còn cần (ví dụ logout)
-const id = api.interceptors.request.use(requestLogger)
-api.interceptors.request.eject(requestInterceptorId)
-```
+> 📄 **Code ví dụ:** [`examples/09-6-huy-va-loai-bo-interceptor.ts`](examples/09-6-huy-va-loai-bo-interceptor.ts)
 
 📌 Interceptor sống cùng vòng đời **instance** — với SPA thường đăng ký một lần khi khởi tạo app (trong `main.ts` hoặc module `api/client.ts`), hiếm khi cần eject.
 
 ---
 
 ## 7. Đừng lạm dụng interceptor
+
+Mục này là phần "dạy về trách nhiệm": interceptor có quyền chạm vào mọi request/response nên cũng rất dễ phá app nếu nhét logic vào sai chỗ. Đọc bảng dưới trước khi viết interceptor đầu tiên.
 
 Interceptor là "điểm chặn toàn cục" — quyền lực lớn, dễ phá code:
 
@@ -211,38 +98,19 @@ Interceptor là "điểm chặn toàn cục" — quyền lực lớn, dễ phá 
 | Log/đếm request | Retry vô điều kiện (dễ spam server) — nếu retry, giới hạn số lần + backoff |
 | Thêm header chuẩn chung | Thay đổi **body** request cho từng endpoint trong interceptor |
 
+> **Cách đọc bảng này:** mỗi dòng là một "được/không được" cho cùng một việc — cột Nên là cách làm đúng vị trí, cột Tránh là biến thể nguy hiểm của chính việc đó.
+
 > ⚠️ Nguyên tắc: interceptor chỉ làm những việc **áp dụng cho mọi request/response**. Logic riêng từng endpoint nên nằm ở module API (`api/posts.ts`), không nằm trong interceptor.
+
+> **Tóm gọn 1 câu:** Interceptor chỉ làm việc dành cho "mọi request" — logic riêng từng endpoint thì về nhà nó (module API), đừng nhét hết vào trạm kiểm soát.
 
 ---
 
 ## 8. Ví dụ tổng hợp: client hoàn chỉnh cho dự án thật
 
-```ts
-// api/client.ts
-import axios from 'axios'
-import { useAuthStore } from '@/stores/auth'   // Pinia — xem 8_pinia
+Mục này ghép mọi mảnh của bài thành một "client hoàn chỉnh" dùng được ngay trong dự án thật — đọc code ví dụ như đọc bản tổng kết có thể copy về.
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 10_000,
-})
-
-api.interceptors.request.use((config) => {
-  const auth = useAuthStore()
-  if (auth.token) config.headers.Authorization = `Bearer ${auth.token}`
-  return config
-})
-
-api.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    if (error.response?.status === 401) {
-      useAuthStore().logout()      // token hết hạn → đăng xuất
-    }
-    return Promise.reject(error)
-  }
-)
-```
+> 📄 **Code ví dụ:** [`examples/10-8-vi-du-tong-hop-client-hoan-chinh.ts`](examples/10-8-vi-du-tong-hop-client-hoan-chinh.ts)
 
 📌 Chú ý gọi `useAuthStore()` **bên trong** interceptor (mỗi lần chạy) chứ không ở cấp module — vì store cần app đã mount.
 

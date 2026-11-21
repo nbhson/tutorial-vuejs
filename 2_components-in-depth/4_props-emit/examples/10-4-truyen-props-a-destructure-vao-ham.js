@@ -1,0 +1,1 @@
+useComposable(() => foo)

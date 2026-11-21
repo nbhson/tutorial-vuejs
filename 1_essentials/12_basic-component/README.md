@@ -2,10 +2,14 @@ Dưới đây là bản tóm tắt đầy đủ – chi tiết – dễ hiểu b
 
 # 1. Component là gì? Tại sao cần Component?
 
+Mục này mở bài bằng cách trả lời câu hỏi "sao phải chia nhỏ giao diện ra làm component?" trước khi đi vào cú pháp.
+
 ## Khái niệm
 
 - Component là các khối UI độc lập, có thể tái sử dụng.
 - Ứng dụng Vue thường được tổ chức theo cây component (component tree).
+
+Ví von: component giống như **bộ đồ ăn lego** — mỗi khối lắp được nhiều lần ở nhiều nơi, và cả mô hình (app) được ghép từ các khối nhỏ ấy thay vì đúc nguyên khối.
 
 Mỗi component:
 - Có template (HTML)
@@ -14,46 +18,19 @@ Mỗi component:
 
 👉 Giống HTML nhưng component có logic riêng, không chỉ là thẻ tĩnh.
 
+> **Tóm gọn 1 câu:** Component là "khối lego của giao diện" — một khối gồm HTML + JS + CSS, dùng đi dùng lại mà không phải viết lại.
+
 # 2. Defining a Component (Định nghĩa Component)
 
 ## 2.1. Dùng Single File Component (SFC – .vue) (phổ biến nhất)
 
 ### Options API
 
-```html
-<!-- ButtonCounter.vue -->
-<script>
-export default {
-  data() {
-    return {
-      count: 0
-    }
-  }
-}
-</script>
-
-<template>
-  <button @click="count++">
-    You clicked me {{ count }} times.
-  </button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/01-options-api.html`](examples/01-options-api.html)
 
 ### Composition API (`<script setup>`)
 
-```html
-<script setup>
-import { ref } from 'vue'
-
-const count = ref(0)
-</script>
-
-<template>
-  <button @click="count++">
-    You clicked me {{ count }} times.
-  </button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/02-composition-api-script-setup.html`](examples/02-composition-api-script-setup.html)
 
 > 📌 Khuyến nghị Vue 3: dùng `<script setup>` vì:
 >
@@ -63,18 +40,7 @@ const count = ref(0)
 
 ## 2.2. Không dùng build step (Component dạng object JS)
 
-```js
-export default {
-  data() {
-    return { count: 0 }
-  },
-  template: `
-    <button @click="count++">
-      You clicked me {{ count }} times.
-    </button>
-  `
-}
-```
+> 📄 **Code ví dụ:** [`examples/03-2-2-khong-dung-build-step-component-dang.js`](examples/03-2-2-khong-dung-build-step-component-dang.js)
 
 👉 Cách này ít dùng trong dự án lớn.
 
@@ -82,64 +48,36 @@ export default {
 
 ## 3.1. Import và đăng ký component (Options API)
 
-```html
-<script>
-import ButtonCounter from './ButtonCounter.vue'
-
-export default {
-  components: {
-    ButtonCounter
-  }
-}
-</script>
-
-<template>
-  <h1>Here is a child component!</h1>
-  <ButtonCounter />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/04-3-1-import-va-ang-ky-component-options.html`](examples/04-3-1-import-va-ang-ky-component-options.html)
 
 ## 3.2. Với `<script setup>` (tự động đăng ký)
 
-```html
-<script setup>
-import ButtonCounter from './ButtonCounter.vue'
-</script>
-
-<template>
-  <h1>Here is a child component!</h1>
-  <ButtonCounter />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/05-3-2-voi-script-setup-tu-ong-ang.html`](examples/05-3-2-voi-script-setup-tu-ong-ang.html)
 
 > 📌 Không cần `components: {}` nữa.
 
 ## 3.3. Tái sử dụng component
 
-```html
-<ButtonCounter />
-<ButtonCounter />
-<ButtonCounter />
-```
+Mục này nói về một hành vi quan trọng: mỗi lần bạn xài lại component, Vue tạo ra một bản sao riêng biệt.
+
+> 📄 **Code ví dụ:** [`examples/06-3-3-tai-su-dung-component.html`](examples/06-3-3-tai-su-dung-component.html)
 
 ➡️ Mỗi lần dùng = 1 instance riêng
 ➡️ State KHÔNG dùng chung
+
+Ví von: giống như **in nhiều bản photo cùng một tờ khai** — mỗi tờ tự điền số liệu riêng, sửa tờ này không ảnh hưởng tờ kia.
 
 # 4. Quy tắc đặt tên Component
 
 **Trong SFC (khuyến nghị)**
 
-```html
-<ButtonCounter />
-```
+> 📄 **Code ví dụ:** [`examples/07-4-quy-tac-at-ten-component.html`](examples/07-4-quy-tac-at-ten-component.html)
 
 - Dùng **PascalCase**
 
 **Trong DOM template (HTML thuần)**
 
-```html
-<button-counter></button-counter>
-```
+> 📄 **Code ví dụ:** [`examples/08-4-quy-tac-at-ten-component.html`](examples/08-4-quy-tac-at-ten-component.html)
 
 - Bắt buộc **kebab-case**
 - Phải có thẻ đóng
@@ -148,101 +86,65 @@ import ButtonCounter from './ButtonCounter.vue'
 
 ## 5.1. Props là gì?
 
+Mục này nói về "đường ống" dữ liệu chính của Vue: cách cha đưa đồ xuống cho con.
+
 - Props là thuộc tính tùy chỉnh
 - Dùng để truyền dữ liệu từ component cha xuống component con
+
+Ví von: props giống như **quyết định của cha** — cha đưa món gì, con nhận món đó, con không tự sửa món đã nhận.
 
 ## 5.2. Khai báo props
 
 **Options API**
 
-```html
-<script>
-export default {
-  props: ['title']
-}
-</script>
-
-<template>
-  <h4>{{ title }}</h4>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/09-5-2-khai-bao-props.html`](examples/09-5-2-khai-bao-props.html)
 
 **`<script setup>`**
 
-```html
-<script setup>
-defineProps(['title'])
-</script>
-
-<template>
-  <h4>{{ title }}</h4>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/10-5-2-khai-bao-props.html`](examples/10-5-2-khai-bao-props.html)
 
 ## 5.3. Truyền props từ component cha
 
-```html
-<BlogPost title="My journey with Vue" />
-```
+> 📄 **Code ví dụ:** [`examples/11-5-3-truyen-props-tu-component-cha.html`](examples/11-5-3-truyen-props-tu-component-cha.html)
 
 ## 5.4. Props động với v-bind
 
-```html
-<BlogPost :title="post.title" />
-```
+> 📄 **Code ví dụ:** [`examples/12-5-4-props-ong-voi-v-bind.html`](examples/12-5-4-props-ong-voi-v-bind.html)
 
 > 📌 Dùng khi dữ liệu thay đổi theo state.
 
 ## 5.5. Props + v-for
 
-```html
-<BlogPost
-  v-for="post in posts"
-  :key="post.id"
-  :title="post.title"
-/>
-```
+> 📄 **Code ví dụ:** [`examples/13-5-5-props-v-for.html`](examples/13-5-5-props-v-for.html)
 
 # 6. Listening to Events (Giao tiếp con → cha)
+
+Mục này nói về chiều dữ liệu ngược lại: khi component con cần "báo cáo ngược" cho cha.
 
 ## 6.1. Vấn đề
 
 - Props chỉ cha → con
 - Muốn con báo ngược lại cho cha → dùng Custom Events
 
+Nếu props là "cha dặn con", thì event là **con gọi điện về báo cha**: "dượng ơi, khách vừa bấm nút xóa đấy, ơi là ơ!" — cha nhận tin rồi tự quyết định xử lý thế nào.
+
 ## 6.2. Emit event từ component con
 
-```html
-<template>
-  <button @click="$emit('enlarge-text')">
-    Enlarge text
-  </button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/14-6-2-emit-event-tu-component-con.html`](examples/14-6-2-emit-event-tu-component-con.html)
 
 ## 6.3. Cha lắng nghe event
 
-```html
-<BlogPost @enlarge-text="postFontSize += 0.1" />
-```
+> 📄 **Code ví dụ:** [`examples/15-6-3-cha-lang-nghe-event.html`](examples/15-6-3-cha-lang-nghe-event.html)
 
 ## 6.4. Khai báo emits (khuyến nghị)
 
 **`<script setup>`**
 
-```html
-<script setup>
-defineEmits(['enlarge-text'])
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/16-6-4-khai-bao-emits-khuyen-nghi.html`](examples/16-6-4-khai-bao-emits-khuyen-nghi.html)
 
 **Options API**
 
-```js
-export default {
-  emits: ['enlarge-text']
-}
-```
+> 📄 **Code ví dụ:** [`examples/17-6-4-khai-bao-emits-khuyen-nghi.js`](examples/17-6-4-khai-bao-emits-khuyen-nghi.js)
 
 > 📌 Lợi ích:
 >
@@ -252,31 +154,24 @@ export default {
 
 # 7. Slots (Truyền nội dung HTML)
 
+Mục này nói về cách truyền nguyên một mảnh giao diện (chứ không chỉ dữ liệu) từ cha vào con.
+
 ## 7.1. Slot là gì?
 
 - Cho phép truyền nội dung HTML từ cha vào con
 - Giống `children` trong React
 
+Ví von: component con là **một cái khung tranh** — khung do con làm, còn bức tranh (nội dung HTML) do cha đưa vào qua `<slot />`.
+
 ## 7.2. Sử dụng slot
 
 **Component cha**
 
-```html
-<AlertBox>
-  Something bad happened.
-</AlertBox>
-```
+> 📄 **Code ví dụ:** [`examples/18-7-2-su-dung-slot.html`](examples/18-7-2-su-dung-slot.html)
 
 **Component con**
 
-```html
-<template>
-  <div class="alert-box">
-    <strong>Error!</strong>
-    <slot />
-  </div>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/19-7-2-su-dung-slot.html`](examples/19-7-2-su-dung-slot.html)
 
 > 📌 `<slot />` = vị trí nội dung được chèn vào
 
@@ -290,15 +185,11 @@ export default {
 
 ## 8.2. Cú pháp
 
-```html
-<component :is="currentTab" />
-```
+> 📄 **Code ví dụ:** [`examples/20-8-2-cu-phap.html`](examples/20-8-2-cu-phap.html)
 
 Hoặc:
 
-```html
-<component :is="tabs[currentTab]" />
-```
+> 📄 **Code ví dụ:** [`examples/21-8-2-cu-phap.html`](examples/21-8-2-cu-phap.html)
 
 > 📌 `:is` có thể là:
 >
@@ -311,47 +202,31 @@ Hoặc:
 
 ❌ Sai:
 
-```html
-<BlogPost postTitle="hello" />
-```
+> 📄 **Code ví dụ:** [`examples/22-9-1-case-insensitive.html`](examples/22-9-1-case-insensitive.html)
 
 ✅ Đúng:
 
-```html
-<blog-post post-title="hello"></blog-post>
-```
+> 📄 **Code ví dụ:** [`examples/23-9-1-case-insensitive.html`](examples/23-9-1-case-insensitive.html)
 
 ## 9.2. Không dùng self-closing
 
 ❌ Sai:
 
-```html
-<my-component />
-```
+> 📄 **Code ví dụ:** [`examples/24-9-2-khong-dung-self-closing.html`](examples/24-9-2-khong-dung-self-closing.html)
 
 ✅ Đúng:
 
-```html
-<my-component></my-component>
-```
+> 📄 **Code ví dụ:** [`examples/25-9-2-khong-dung-self-closing.html`](examples/25-9-2-khong-dung-self-closing.html)
 
 ## 9.3. Giới hạn vị trí thẻ (table, ul, select...)
 
 ❌ Sai:
 
-```html
-<table>
-  <blog-post-row></blog-post-row>
-</table>
-```
+> 📄 **Code ví dụ:** [`examples/26-9-3-gioi-han-vi-tri-the-table.html`](examples/26-9-3-gioi-han-vi-tri-the-table.html)
 
 ✅ Đúng:
 
-```html
-<table>
-  <tr is="vue:blog-post-row"></tr>
-</table>
-```
+> 📄 **Code ví dụ:** [`examples/27-9-3-gioi-han-vi-tri-the-table.html`](examples/27-9-3-gioi-han-vi-tri-the-table.html)
 
 ## 10 Tổng kết ngắn gọn (rất dễ nhớ)
 
@@ -378,3 +253,7 @@ Hoặc:
 | **Slot** | Truyền nội dung HTML |
 | **Dynamic component** | Component thay đổi theo state |
 | **script setup** | Cách viết gọn & hiện đại |
+
+> **Cách đọc bảng này:** mỗi dòng là một chủ đề của bài, cột phải là "một cụm từ nhớ" cho chủ đề đó. Đọc từ trên xuống theo đúng trình tự bài học — nếu cột phải nào bạn còn mơ hồ thì quay lại section tương ứng.
+
+> **Tóm gọn 1 câu:** Component app = lego (component) + đường ống (props xuống, events lên, slot chở HTML) + cầu chì (`:is` đổi component theo state).

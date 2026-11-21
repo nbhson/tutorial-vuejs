@@ -1,0 +1,9 @@
+<script setup>
+import { useCounterStore } from './counterStore'
+
+const store = useCounterStore()
+</script>
+
+<template>
+  <p>Double count: {{ store.doubleCount }}</p>
+</template>

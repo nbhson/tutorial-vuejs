@@ -14,7 +14,11 @@
 
 ## 1. Store là gì? (khái niệm vẫn đúng với Pinia)
 
+Mục này giải thích khái niệm "store" — phần cốt lõi còn nguyên giá trị dù Vuex đã legacy. Đọc để hiểu vì sao app lớn cần một chỗ dữ liệu trung tâm.
+
 Khi ứng dụng lớn lên, nhiều component cùng cần chung một dữ liệu (user đang đăng nhập, giỏ hàng, theme...). Truyền props qua nhiều tầng (prop drilling) rất rối. **Store** là chỗ dữ liệu trung tâm — mọi component đều truy cập được.
+
+Hãy hình dung như tủ hồ sơ chung của công ty: thay vì mỗi phòng giữ một bản photo tự sao chép tay qua tay (prop drilling), ai cần hồ sơ gì cứ đến tủ chung lấy — chỉ một nguồn sự thật duy nhất.
 
 ```
 ┌────────────┐     ┌──────────────────────────┐
@@ -28,69 +32,27 @@ Khi ứng dụng lớn lên, nhiều component cùng cần chung một dữ li�
 
 ## 2. Cài đặt Vuex (chỉ khi làm việc với dự án cũ)
 
-```bash
-npm install vuex@4          # Vuex 4 dành cho Vue 3
-```
+> 📄 **Code ví dụ:** [`examples/01-2-cai-at-vuex-chi-khi-lam-viec.sh`](examples/01-2-cai-at-vuex-chi-khi-lam-viec.sh)
 
-```ts
-// store/index.ts — ❌ legacy
-import { createStore } from 'vuex'
+> 📄 **Code ví dụ:** [`examples/02-2-cai-at-vuex-chi-khi-lam-viec.ts`](examples/02-2-cai-at-vuex-chi-khi-lam-viec.ts)
 
-export default createStore({
-  state: {
-    count: 0,
-  },
-})
-```
-
-```ts
-// main.ts
-import { createApp } from 'vue'
-import store from './store'
-
-createApp(App).use(store).mount('#app')
-```
+> 📄 **Code ví dụ:** [`examples/03-2-cai-at-vuex-chi-khi-lam-viec.ts`](examples/03-2-cai-at-vuex-chi-khi-lam-viec.ts)
 
 Đối chiếu với **Pinia** (mới): không cần root store, không cần `use()`:
 
-```ts
-// stores/counter.ts — ✅ Pinia
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-
-export const useCounterStore = defineStore('counter', () => {
-  const count = ref(0)
-  return { count }
-})
-```
+> 📄 **Code ví dụ:** [`examples/04-2-cai-at-vuex-chi-khi-lam-viec.ts`](examples/04-2-cai-at-vuex-chi-khi-lam-viec.ts)
 
 ## 3. Truy cập state trong component (Vuex)
 
-```vue
-<script setup>
-import { useStore } from 'vuex'
-import { computed } from 'vue'
-
-const store = useStore()
-const count = computed(() => store.state.count)
-</script>
-
-<template>
-  <p>Count: {{ count }}</p>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/05-3-truy-cap-state-trong-component-vuex.vue`](examples/05-3-truy-cap-state-trong-component-vuex.vue)
 
 Options API + `mapState` (thân thuộc với code cũ):
 
-```js
-import { mapState } from 'vuex'
-
-export default {
-  computed: mapState(['count']),
-}
-```
+> 📄 **Code ví dụ:** [`examples/06-3-truy-cap-state-trong-component-vuex.js`](examples/06-3-truy-cap-state-trong-component-vuex.js)
 
 ## 4. So sánh nhanh state Vuex vs Pinia
+
+Mục này đối chiếu "cùng một việc, hai ngôn ngữ": bảng dưới giúp bạn dịch từ code Vuex cũ sang tư duy Pinia (và ngược lại khi đọc code cũ).
 
 | Vuex 4 | Pinia 3 | Ghi chú |
 |---|---|---|
@@ -99,9 +61,15 @@ export default {
 | `mapState(['count'])` | `storeToRefs(counter)` | Pinia có helper riêng |
 | Chỉ khởi tạo state qua plain object | Hàm trả object, hỗ trợ tốt SSR | Khái niệm giống nhau |
 
+> **Cách đọc bảng này:** mỗi dòng là một hành động quen thuộc (khai báo, đọc, map vào component); cột Vuex là cách nói cũ, cột Pinia là cách nói mới — dùng như từ điển hai chiều khi migrate.
+
 > 💡 Nội dung chi tiết từng khía cạnh state của Pinia: [`8_pinia/2_state`](../8_pinia/2_state/README.md).
 
+> **Tóm gọn 1 câu:** Store là "tủ hồ sơ trung tâm" của app — một nguồn sự thật thay vì truyền props qua từng tầng; cách cài Vuex chỉ cần khi chạm code cũ.
+
 ## 5. Khi nào đọc tiếp phần Vuex legacy?
+
+Mục này là "biển chỉ dẫn" giúp bạn quyết có đi tiếp hay rẽ: học từ đầu thì rẽ sang Pinia ngay, có code cũ thì đi tiếp.
 
 - ✅ Bạn **nhận code cũ** dùng Vuex và cần bảo trì/tìm hiểu.
 - ✅ Bạn cần **migration** Vuex → Pinia (xem [`8_pinia/VUEX-vs-PINIA.md`](../8_pinia/VUEX-vs-PINIA.md)).

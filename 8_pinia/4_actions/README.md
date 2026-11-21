@@ -4,6 +4,10 @@ Dưới đây là tóm tắt đầy đủ – dễ hiểu – có ví dụ cụ 
 
 ## 1. Actions trong Pinia là gì?
 
+Mục này định nghĩa "bàn tay làm việc" của store: actions là nơi chứa mọi hành động — từ xử lý logic đến gọi API. Đọc để nắm vai trò của nó trước khi học cú pháp.
+
+Hãy hình dung store như một cửa hàng: state là kho, getters là bảng giá, còn actions là nhân viên — người nhận yêu cầu, chạy ra chạy vào, gọi nhà cung cấp (API) và cập nhật kho.
+
 Actions tương đương với **methods** trong component Vue. Chúng được dùng để:
 -   Xử lý logic nghiệp vụ (business logic).
 -   Thay đổi trạng thái (state).
@@ -11,32 +15,19 @@ Actions tương đương với **methods** trong component Vue. Chúng được 
 
 👉 Actions được khai báo trong `defineStore()` thông qua thuộc tính `actions`.
 
+> **Tóm gọn 1 câu:** Action = methods của store — nơi chứa logic nghiệp vụ, sửa state, và gọi API với async/await tự nhiên.
+
 ---
 
 ## 2. Khai báo Actions cơ bản
 
-### Ví dụ Store Counter
-```javascript
-import { defineStore } from 'pinia'
+Mục này học "cách tuyển nhân viên đúng": khai báo action bằng function thường, đừng dùng arrow function — lý do nằm ở `this` ở mục sau.
 
-export const useCounterStore = defineStore('counter', {
-  state: () => ({
-    count: 0,
-  }),
-  actions: {
-    increment() {
-      // Thay đổi state trực tiếp qua 'this'
-      this.count++
-    },
-    randomizeCounter() {
-      this.count = Math.round(100 * Math.random())
-    },
-  },
-})
-```
+### Ví dụ Store Counter
+> 📄 **Code ví dụ:** [`examples/01-vi-du-store-counter.js`](examples/01-vi-du-store-counter.js)
 
 📌 **Lưu ý quan trọng:**
--   ❌ **Không dùng arrow function** cho actions vì nó sẽ làm mất ngữ cảnh `this`.
+-   ❌ **Không dùng arrow function** cho actions vì nó sẽ làm mất ngữ cảnh `this`. Ví von: arrow function như nhân viên "không nhận diện công ty" — làm việc được nhưng không biết mình thuộc cửa hàng nào, không chạm được vào kho.
 -   ✅ **Dùng function thường** để `this` trỏ đúng về instance của store.
 
 ---
@@ -52,32 +43,12 @@ Trong Pinia Actions, `this` đại diện cho toàn bộ instance của store. B
 
 ## 4. Actions bất đồng bộ (Async / Await)
 
-Actions cực kỳ phù hợp để xử lý các logic bất đồng bộ như gọi API.
+Mục này là "trường phái chính" của action: gọi API, chờ kết quả, cập nhật state — tất cả với `await` như viết JS bình thường.
+
+Actions cực kỳ phù hợp để xử lý các logic bất đồng bộ như gọi API. Ví von: action là nhân viên ra ngoài gặp nhà cung cấp — đi mất thời gian (async) nhưng mọi người cứ làm việc tiếp, nhân viên về thì cập nhật kho.
 
 ### Ví dụ gọi API đăng ký User
-```javascript
-import { defineStore } from 'pinia'
-import { mande } from 'mande' // hoặc axios, fetch...
-
-const api = mande('/api/users')
-
-export const useUsersStore = defineStore('users', {
-  state: () => ({
-    userData: null,
-  }),
-  actions: {
-    async registerUser(login, password) {
-      try {
-        this.userData = await api.post({ login, password })
-        alert(`Chào mừng ${this.userData.name}!`)
-      } catch (error) {
-        alert('Đăng ký thất bại: ' + error)
-        return error // Trả về lỗi để component xử lý thêm nếu cần
-      }
-    },
-  },
-})
-```
+> 📄 **Code ví dụ:** [`examples/02-vi-du-goi-api-ang-ky-user.js`](examples/02-vi-du-goi-api-ang-ky-user.js)
 
 👉 Bạn có thể:
 -   Sử dụng `await` cho các lời gọi API.
@@ -88,25 +59,10 @@ export const useUsersStore = defineStore('users', {
 ## 5. Gọi Actions trong Component
 
 ### Trong `<script setup>`
-```html
-<script setup>
-import { useCounterStore } from '@/stores/counter'
-
-const store = useCounterStore()
-
-// Gọi như hàm bình thường
-store.increment()
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/03-trong-script-setup.html`](examples/03-trong-script-setup.html)
 
 ### Trong template
-```html
-<template>
-  <button @click="store.randomizeCounter">
-    Randomize
-  </button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/04-trong-template.html`](examples/04-trong-template.html)
 
 ---
 
@@ -114,98 +70,35 @@ store.increment()
 
 Bạn không cần truyền props phức tạp; chỉ cần khởi tạo store khác ngay bên trong action.
 
-```javascript
-import { defineStore } from 'pinia'
-import { useAuthStore } from './auth-store'
-
-export const useSettingsStore = defineStore('settings', {
-  actions: {
-    async fetchUserPreferences() {
-      const auth = useAuthStore()
-
-      if (auth.isAuthenticated) {
-        this.preferences = await fetchPreferences()
-      } else {
-        throw new Error('User must be authenticated')
-      }
-    },
-  },
-})
-```
+> 📄 **Code ví dụ:** [`examples/05-6-goi-actions-cua-store-khac.js`](examples/05-6-goi-actions-cua-store-khac.js)
 
 ---
 
 ## 7. Dùng Actions với Options API
 
 ### 7.1. Dùng Options API + `setup()`
-```html
-<script>
-import { useCounterStore } from '@/stores/counter'
-
-export default {
-  setup() {
-    const counterStore = useCounterStore()
-    return { counterStore }
-  },
-  methods: {
-    incrementAndLog() {
-      this.counterStore.increment()
-      console.log('Count mới:', this.counterStore.count)
-    },
-  },
-}
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/06-7-1-dung-options-api-setup.html`](examples/06-7-1-dung-options-api-setup.html)
 
 ### 7.2. Dùng `mapActions` (không có `setup`)
-```javascript
-import { mapActions } from 'pinia'
-import { useCounterStore } from '@/stores/counter'
-
-export default {
-  methods: {
-    // Truy cập trực tiếp qua this.increment()
-    ...mapActions(useCounterStore, ['increment']),
-    
-    // Đổi tên action sang this.increase()
-    ...mapActions(useCounterStore, {
-      increase: 'increment',
-    }),
-  },
-}
-```
+> 📄 **Code ví dụ:** [`examples/07-7-2-dung-mapactions-khong-co-setup.js`](examples/07-7-2-dung-mapactions-khong-co-setup.js)
 
 ---
 
 ## 8. Lắng nghe Actions với `$onAction()`
 
+Mục này về "camera an ninh hành động": `$onAction` cho bạn biết action nào sắp chạy, chạy xong, hay gặp lỗi — dùng cho logging, analytics, error tracking.
+
 Dùng để theo dõi action trước khi chạy, sau khi thành công hoặc khi gặp lỗi. Rất hữu ích cho **Logging**, **Analytics**, hoặc **Error Tracking**.
 
-```javascript
-const unsubscribe = store.$onAction(
-  ({ name, args, after, onError }) => {
-    const start = Date.now()
-    console.log(`Bắt đầu action "${name}" với tham số:`, args)
-
-    after((result) => {
-      console.log(`Hoàn thành "${name}" trong ${Date.now() - start}ms`)
-    })
-
-    onError((error) => {
-      console.error(`Lỗi tại "${name}":`, error)
-    })
-  }
-)
-
-// Để hủy lắng nghe:
-// unsubscribe()
-```
+> 📄 **Code ví dụ:** [`examples/08-8-lang-nghe-actions-voi-onaction.js`](examples/08-8-lang-nghe-actions-voi-onaction.js)
 
 📌 **Giữ subscription:** Mặc định `$onAction` sẽ tự hủy khi component unmount. Để giữ lại, truyền tham số `true`: `store.$onAction(callback, true)`.
 
 ---
 
 ## 11. Tổng kết nhanh
+
+Mục này gói cả bài vào một bảng ôn — mỗi dòng một quy tắc dùng action.
 
 | Nội dung | Ghi nhớ |
 | :--- | :--- |
@@ -215,3 +108,7 @@ const unsubscribe = store.$onAction(
 | **Gọi store khác** | Gọi trực tiếp bên trong action. |
 | **Options API** | Dùng `mapActions` hoặc `setup()`. |
 | **`$onAction`** | Dùng để debug, audit hoặc theo dõi hiệu năng. |
+
+> **Cách đọc bảng này:** mỗi dòng là một quy tắc dùng action; dòng cần nhớ nhất là `this` (không dùng arrow function) — đó là bẫy duy nhất của bài này.
+
+> **Tóm gọn 1 câu:** Action là "nhân viên làm việc" của store: chạy logic, gọi API với `await`, sửa state trực tiếp — nhớ dùng function thường để `this` không lạc đường.

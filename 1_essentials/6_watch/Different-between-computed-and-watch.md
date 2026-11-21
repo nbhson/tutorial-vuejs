@@ -20,13 +20,19 @@ Cả 3 đều:
 
 # 2️⃣ Sự khác biệt cốt lõi (1 câu mỗi cái)
 
+Mục này chốt "một câu nhận diện" cho từng API — nhớ ba câu này là phân biệt được 80% tình huống.
+
 | API | Bản chất |
 | :--- | :--- |
 | `computed` | Tạo ra giá trị mới từ state |
 | `watch` | Phản ứng khi state thay đổi |
 | `watchEffect` | Tự động phản ứng dựa trên những gì nó đọc |
 
+> **Cách đọc bảng này:** đọc cột phải thành ba câu ngắn — "sinh giá trị", "phản ứng có đích", "phản ứng tự do". Ba hàng này là kim chỉ nam cho mọi quyết định chọn API.
+
 # 3️⃣ computed – “Tôi sinh ra GIÁ TRỊ”
+
+Mục này phân tích kỹ công cụ đầu tiên: computed như một "công thức toán" thuần túy.
 
 ## Bản chất
 
@@ -34,11 +40,9 @@ Cả 3 đều:
 - Trả về 1 giá trị
 - Pure & không side-effect
 
-```js
-const fullName = computed(() => {
-  return firstName.value + ' ' + lastName.value
-})
-```
+Ví von: computed giống **máy bán nước tự động** — bỏ tiền đúng mệnh giá (dependency hợp lệ) là ra nước, nó không bao giờ tự đi pha thêm phụ gia (side-effect).
+
+> 📄 **Code ví dụ:** [`examples/01-ban-chat.js`](examples/01-ban-chat.js)
 
 ## Đặc điểm quan trọng
 
@@ -53,16 +57,16 @@ const fullName = computed(() => {
 
 # 4️⃣ watch – “Khi mày đổi, tao LÀM GÌ ĐÓ”
 
+Mục này phân tích công cụ thứ hai: watch không sinh giá trị, nó "thuê người canh" và giao việc khi có biến động.
+
 ## Bản chất
 
 - Lắng nghe 1 dependency cụ thể
 - Thực hiện side-effect
 
-```js
-watch(id, async (newId) => {
-  fetch(`/api/${newId}`)
-})
-```
+Ví von: watch giống như **thợ canh kho thuê theo giờ** — bạn dặn "kho A thay đổi thì gọi điện báo tôi": nó không tạo ra hàng hóa gì, chỉ hành động khi có biến động.
+
+> 📄 **Code ví dụ:** [`examples/02-ban-chat.js`](examples/02-ban-chat.js)
 
 ## Đặc điểm
 
@@ -77,16 +81,16 @@ watch(id, async (newId) => {
 
 # 5️⃣ watchEffect – “Tao nhìn xem mày dùng gì, tao tự biết”
 
+Mục này phân tích công cụ thứ ba: watchEffect tự phát hiện dependency thay vì được chỉ định — tiện nhưng dễ "rủi ro mất kiểm soát".
+
 ## Bản chất
 
 - Không cần khai báo dependency
 - Vue tự detect những gì được READ
 
-```js
-watchEffect(() => {
-  console.log(id.value)
-})
-```
+Ví von: watchEffect giống **người phục vụ tự quan sát** — bạn chưa cần gọi, cứ thấy bạn chạm món gì là nó tự mang lên. Tiện thật, nhưng đôi khi nó mang món bạn chỉ "cầm xem thử".
+
+> 📄 **Code ví dụ:** [`examples/03-ban-chat.js`](examples/03-ban-chat.js)
 
 ## Đặc điểm
 
@@ -103,11 +107,7 @@ watchEffect(() => {
 
 ## 🔁 Ví dụ giống nhau bề ngoài
 
-```js
-computed(() => a.value + b.value)
-watch(() => a.value + b.value, () => {})
-watchEffect(() => a.value + b.value)
-```
+> 📄 **Code ví dụ:** [`examples/04-vi-du-giong-nhau-be-ngoai.js`](examples/04-vi-du-giong-nhau-be-ngoai.js)
 
 👉 Nhưng kết quả hoàn toàn khác:
 
@@ -117,15 +117,13 @@ watchEffect(() => a.value + b.value)
 | `watch` | Không tạo gì, chỉ phản ứng |
 | `watchEffect` | Không tạo gì, chỉ chạy |
 
+> **Cách đọc bảng này:** cùng một đoạn code chạy qua 3 API, cột phải là "sản phẩm" thu được — chỉ `computed` sinh ra giá trị, hai anh em còn lại chỉ hành động.
+
 ## 💥 Nếu bạn dùng SAI mục đích
 
 ❌ Dùng computed để fetch API
 
-```js
-const data = computed(async () => {
-  return await fetch(...)
-})
-```
+> 📄 **Code ví dụ:** [`examples/05-neu-ban-dung-sai-muc-ich.js`](examples/05-neu-ban-dung-sai-muc-ich.js)
 
 → ❌ sai thiết kế
 → ❌ không cleanup
@@ -133,11 +131,7 @@ const data = computed(async () => {
 
 ❌ Dùng watch để sinh giá trị hiển thị
 
-```js
-watch(a, () => {
-  sum.value = a.value + b.value
-})
-```
+> 📄 **Code ví dụ:** [`examples/06-neu-ban-dung-sai-muc-ich.js`](examples/06-neu-ban-dung-sai-muc-ich.js)
 
 → ❌ thừa code
 → ❌ mất cache
@@ -165,6 +159,8 @@ watch(a, () => {
 
 # 8️⃣ Bảng so sánh cuối (rất đáng nhớ)
 
+Bảng dưới đây là "bản tổng kết" gom đủ sáu tiêu chí — khi phân vân giữa ba API, đối chiếu từng hàng.
+
 | Tiêu chí | computed | watch | watchEffect |
 | :--- | :--- | :--- | :--- |
 | Trả về giá trị | ✅ | ❌ | ❌ |
@@ -174,8 +170,12 @@ watch(a, () => {
 | Cache | ✅ | ❌ | ❌ |
 | Debug dễ | ✅ | ✅ | ❌ |
 
+> **Cách đọc bảng này:** đọc theo hàng ngang — mỗi hàng là một tiêu chí, so sánh ba cột xem API nào "đạt". Hàng "Trả về giá trị" là phân định quan trọng nhất: chỉ computed trả về giá trị.
+
 # 9️⃣ Cách ghi nhớ đơn giản (1 câu)
 
 - 🧠 `computed` = value
 - 🧠 `watch` = reaction
 - 🧠 `watchEffect` = auto-reaction
+
+> **Tóm gọn 1 câu:** Ba anh em reactive: `computed` bán hàng (sinh giá trị), `watch` canh kho (phản ứng có đích), `watchEffect` tự phán đoán (phản ứng mọi thứ nó thấy).

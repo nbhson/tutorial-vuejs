@@ -1,0 +1,11 @@
+<script setup>
+import { onActivated, onDeactivated } from 'vue'
+
+onActivated(() => {
+  console.log('Component đã quay trở lại!')
+})
+
+onDeactivated(() => {
+  console.log('Component đã tạm nghỉ và được đưa vào cache.')
+})
+</script>

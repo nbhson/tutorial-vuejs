@@ -1,0 +1,9 @@
+<script setup>
+import { ref } from 'vue'
+const show = ref(false)
+</script>
+
+<template>
+  <button @click="show = !show">Toggle</button>
+  <p v-show="show">Nội dung này chỉ bị ẩn/hiện</p>
+</template>

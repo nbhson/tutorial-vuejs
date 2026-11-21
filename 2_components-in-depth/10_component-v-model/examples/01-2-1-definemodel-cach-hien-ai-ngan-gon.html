@@ -1,0 +1,12 @@
+<script setup>
+const model = defineModel()
+
+function increment() {
+  model.value++
+}
+</script>
+
+<template>
+  <div>Giá trị từ parent: {{ model }}</div>
+  <button @click="increment">Tăng</button>
+</template>

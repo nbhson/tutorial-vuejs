@@ -12,120 +12,54 @@
 
 ## 1. Action là gì? Khác mutation ở đâu?
 
+Mục này phân vai hai nhân vật trong đoàn kịch Vuex: mutation là người "ghi sổ cái" (sync, qua `commit`), action là người "chạy việc ngoài" (gọi API, xử lý logic, qua `dispatch`). Đọc để hiểu bộ đôi này trước khi nhìn code cũ.
+
+Ví von: mutation là kế toán trong phòng — chỉ nhận phiếu và ghi sổ ngay tại chỗ; action là nhân viên kinh doanh ra ngoài gặp khách, xong việc mới về nộp phiếu cho kế toán.
+
 - **Mutation** — hàm **đồng bộ** thay đổi state, gọi qua `commit`.
 - **Action** — hàm **chứa logic nghiệp vụ**, thường **bất đồng bộ** (gọi API...), khi cần thay state thì `commit` mutation. Gọi qua `dispatch`.
 
-```js
-// ❌ Vuex 4 — legacy
-import { createStore } from 'vuex'
+> 📄 **Code ví dụ:** [`examples/01-1-action-la-gi-khac-mutation-o-au.js`](examples/01-1-action-la-gi-khac-mutation-o-au.js)
 
-export default createStore({
-  state: () => ({ posts: [], loading: false }),
-  mutations: {
-    setPosts(state, posts) { state.posts = posts },
-    setLoading(state, v)   { state.loading = v },
-  },
-  actions: {
-    // context có: commit, dispatch, state, rootState, rootGetters...
-    async fetchPosts({ commit }) {
-      commit('setLoading', true)
-      try {
-        const res = await fetch('/api/posts')
-        commit('setPosts', await res.json())
-      } finally {
-        commit('setLoading', false)
-      }
-    },
-  },
-})
-```
-
-```js
-// Gọi từ component
-store.dispatch('fetchPosts')
-```
+> 📄 **Code ví dụ:** [`examples/02-1-action-la-gi-khac-mutation-o-au.js`](examples/02-1-action-la-gi-khac-mutation-o-au.js)
 
 📌 **Nguyên tắc cũ của Vuex:** logic async nằm trong action; mutation chỉ làm việc gán state thuần (sync). Mọi điều kiện/lỗi xử lý trong action.
 
+> **Tóm gọn 1 câu:** Action là "nhân viên ra ngoài chạy việc" (async, gọi qua `dispatch`), mutation là "kế toán ghi sổ trong phòng" (sync, qua `commit`) — Pinia gộp cả hai thành một.
+
 ## 2. Truyền tham số cho action
 
-```js
-// legacy
-actions: {
-  async createPost({ commit }, payload) {
-    const res = await fetch('/api/posts', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    })
-    commit('addPost', await res.json())
-  },
-}
-```
+Mục này giải quyết chi tiết nhỏ nhưng hay vướng: action chỉ nhận một "túi payload" — cần nhiều thứ thì bỏ hết vào một object, như đưa cả vali thay vì ôm từng túi rời.
 
-```js
-await store.dispatch('createPost', { title: 'Bài mới', body: 'Nội dung' })
-```
+> 📄 **Code ví dụ:** [`examples/03-2-truyen-tham-so-cho-action.js`](examples/03-2-truyen-tham-so-cho-action.js)
+
+> 📄 **Code ví dụ:** [`examples/04-2-truyen-tham-so-cho-action.js`](examples/04-2-truyen-tham-so-cho-action.js)
 
 Lưu ý: nếu cần **nhiều** tham số, Vuex chỉ nhận một "payload" — bọc chúng vào object.
 
+> **Tóm gọn 1 câu:** Action chỉ nhận một payload duy nhất — nhiều tham số thì bọc vào một object như gói cả vào một vali.
+
 ## 3. Action gọi action khác
 
-```js
-// legacy
-actions: {
-  async login({ dispatch }, credentials) {
-    await dispatch('auth/requestToken', credentials, { root: true })
-    await dispatch('loadProfile')
-  },
-  async loadProfile({ commit }) { /* ... */ },
-}
-```
+> 📄 **Code ví dụ:** [`examples/05-3-action-goi-action-khac.js`](examples/05-3-action-goi-action-khac.js)
 
 Đối chiếu Pinia — store khác chỉ cần import và gọi như hàm thường:
 
-```ts
-// ✅ Pinia
-const auth = useAuthStore()
-await auth.requestToken(credentials)
-await this.loadProfile()
-```
+> 📄 **Code ví dụ:** [`examples/06-3-action-goi-action-khac.ts`](examples/06-3-action-goi-action-khac.ts)
 
 ## 4. Xử lý lỗi trong action
 
-```js
-// legacy
-actions: {
-  async fetchPosts({ commit }) {
-    try {
-      const res = await fetch('/api/posts')
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      commit('setPosts', await res.json())
-    } catch (e) {
-      commit('setError', 'Không tải được danh sách bài')
-      // ⚠️ Hãy re-throw nếu component cần biết để hiển thị UI lỗi riêng
-      throw e
-    }
-  },
-}
-```
+Mục này nói về "kịch bản xấu": gọi API thì có lúc trượt — action là đúng chỗ bắt lỗi, hiện thông báo, và đừng để app đứng hình.
+
+> 📄 **Code ví dụ:** [`examples/07-4-xu-ly-loi-trong-action.js`](examples/07-4-xu-ly-loi-trong-action.js)
 
 Đối chiếu Pinia — dễ hơn vì action là hàm JS thông thường:
 
-```ts
-// ✅ Pinia
-async function fetchPosts() {
-  try {
-    posts.value = await postsApi.list()
-  } catch (e) {
-    error.value = 'Không tải được danh sách bài'
-    throw e
-  }
-}
-```
+> 📄 **Code ví dụ:** [`examples/08-4-xu-ly-loi-trong-action.ts`](examples/08-4-xu-ly-loi-trong-action.ts)
 
 ## 5. Action + Composable / Pinia hiện đại
 
-Pinia không cần "mutation/commit/dispatch" nữa — bạn **gọi thẳng hàm của store**:
+Mục này cho thấy "sau khi bỏ nghi lễ": Pinia không còn commit/dispatch — bạn gọi hàm của store như gọi hàm JS bình thường. Bảng dưới đối chiếu từng thủ tục cũ.
 
 | Vuex | Pinia |
 |---|---|
@@ -133,6 +67,8 @@ Pinia không cần "mutation/commit/dispatch" nữa — bạn **gọi thẳng h�
 | `commit('setPosts', data)` | `posts.value = data` (trong action) |
 | Context `{ commit, dispatch, state }` | `this` (Options store) hoặc closure (Setup store) |
 | Action sync phải qua mutation | Action sync/async đều viết trực tiếp |
+
+> **Cách đọc bảng này:** mỗi dòng là một "nghi lễ" Vuex và cách nó biến mất ở Pinia — đọc để thấy mọi tầng trung gian đều gỡ bỏ, chỉ còn gọi hàm trực tiếp.
 
 Chi tiết đầy đủ: [`8_pinia/4_actions`](../8_pinia/4_actions/README.md).
 
@@ -148,6 +84,8 @@ Vuex action
 ```
 
 Mẹo khi migration từng bước: giữ tên action Vuex ở Pinia (tên hàm trùng) để nơi gọi (`dispatch('fetchPosts')` → `store.fetchPosts()`) chỉ cần đổi cách gọi, không đổi logic.
+
+> **Tóm gọn 1 câu:** Pinia xóa mọi nghi lễ commit/dispatch — action thành hàm thường, và giữ nguyên tên hàm khi migrate để đổi cách gọi là xong.
 
 ## 7. Khi nào đọc tiếp phần Vuex legacy?
 

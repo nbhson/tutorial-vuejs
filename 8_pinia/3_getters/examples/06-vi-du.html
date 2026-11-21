@@ -1,0 +1,11 @@
+<script setup>
+import { storeToRefs } from 'pinia'
+import { useUserStore } from './store'
+
+const store = useUserStore()
+const { getUserById } = storeToRefs(store)
+</script>
+
+<template>
+  <p>User details: {{ getUserById(2) }}</p>
+</template>

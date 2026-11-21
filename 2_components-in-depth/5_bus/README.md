@@ -19,13 +19,7 @@
 
 Trong Vue 2, "event bus" là một Vue instance rỗng dùng làm **đài phát thanh trung tâm**:
 
-```js
-// ❌ Vue 2 — KHÔNG hoạt động trong Vue 3
-const bus = new Vue()                     // instance rỗng
-bus.$on('cart-updated', handler)          // nghe
-bus.$emit('cart-updated', payload)        // phát
-bus.$off('cart-updated', handler)         // hủy đăng ký
-```
+> 📄 **Code ví dụ:** [`examples/01-1-event-bus-la-gi-boi-canh-lich.js`](examples/01-1-event-bus-la-gi-boi-canh-lich.js)
 
 Mục đích: cho hai component **không có quan hệ cha–con** nói chuyện với nhau (ví dụ: sidebar nghe sự kiện từ một modal ở nhánh khác của cây component).
 
@@ -38,117 +32,68 @@ Mục đích: cho hai component **không có quan hệ cha–con** nói chuyện
 | **Trùng lặp với Pinia/`provide-inject`** | Vue 3 cung cấp giải pháp chính thức tốt hơn cho từng nhu cầu |
 | **API instance gọn hơn** | Vue 3 tách hẳn các API toàn cục ra khỏi instance |
 
+> **Cách đọc bảng này:** cột trái là "căn bệnh", cột phải là "triệu chứng" — bốn dòng này là lý do nhóm Vue quyết định mổ xóa event bus khỏi Vue 3.
+
+> **Tóm gọn 1 câu:** Event bus là "đài phát thanh không đài gọi, ai cũng nghe được, không ai biết ai phát" — tiện thì tiện nhưng debug thì mệt luôn.
+
 ---
 
 ## 2. Thay thế 1 — `provide` / `inject` (chuẩn Vue 3, trong cùng cây component)
 
-```vue
-<!-- App.vue (ancestor) — đóng vai trò "broadcaster" -->
-<script setup>
-import { provide, ref } from 'vue'
+Mục này nói về giải pháp thay thế đầu tiên: thay vì phát sự kiện ra không khí, cho dữ liệu "chảy" theo đúng cây component từ tổ tiên xuống cháu.
 
-const theme = ref('dark')
-const setTheme = (t) => { theme.value = t }
+> 📄 **Code ví dụ:** [`examples/02-2-thay-the-1-provide-inject-chuan-vue.vue`](examples/02-2-thay-the-1-provide-inject-chuan-vue.vue)
 
-provide('theme', { theme, setTheme })   // bất kỳ component con nào cũng có thể lấy
-</script>
-```
-
-```vue
-<!-- Sidebar.vue (con sâu trong cây) -->
-<script setup>
-import { inject } from 'vue'
-
-const { theme, setTheme } = inject('theme')   // "nghe" giá trị reactive
-</script>
-
-<template>
-  <button @click="setTheme('light')">Chuyển sáng</button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/03-2-thay-the-1-provide-inject-chuan-vue.vue`](examples/03-2-thay-the-1-provide-inject-chuan-vue.vue)
 
 📌 Với **app cấp component gốc** (toàn app), `app.provide()` cũng hoạt động. Chi tiết đầy đủ: [`8_provide_inject`](../8_provide_inject/README.md).
+
+> **Tóm gọn 1 câu:** `provide`/`inject` là "đường ống đúng tuyến" — dữ liệu chảy theo cây component, không phát tán lung tung.
 
 ---
 
 ## 3. Thay thế 2 — Pinia (state toàn cục)
 
+Mục này nói về giải pháp khi dữ liệu thuộc về "cả thành phố": nhiều component cùng đọc/ghi một nguồn chung thì nên để state nằm ở một kho trung tâm duy nhất.
+
 Khi nhiều component cùng đọc/ghi một nguồn dữ liệu (giỏ hàng, user, theme), store là lựa chọn chuẩn:
 
-```ts
-// stores/cart.ts
-import { defineStore } from 'pinia'
+> 📄 **Code ví dụ:** [`examples/04-3-thay-the-2-pinia-state-toan-cuc.ts`](examples/04-3-thay-the-2-pinia-state-toan-cuc.ts)
 
-export const useCartStore = defineStore('cart', {
-  state: () => ({ items: [] as Item[] }),
-  actions: {
-    add(item: Item) { this.items.push(item) },
-  },
-})
-```
-
-```vue
-<!-- Component nào cũng gọi cùng store — không cần bus, không cần prop drilling -->
-<script setup>
-import { useCartStore } from '@/stores/cart'
-
-const cart = useCartStore()
-</script>
-
-<template>
-  <button @click="cart.add(product)">Thêm vào giỏ ({{ cart.items.length }})</button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/05-3-thay-the-2-pinia-state-toan-cuc.vue`](examples/05-3-thay-the-2-pinia-state-toan-cuc.vue)
 
 Chi tiết đầy đủ: [`8_pinia`](../../8_pinia/README.md) và [`9_vue-ecosystem/pinia-2`](../../9_vue-ecosystem/pinia-2/README.md).
+
+> **Tóm gọn 1 câu:** Dữ liệu nhiều người dùng chung thì để vào Pinia — một kho, một nguồn sự thật, không cần phát tín hiệu vòng vòng.
 
 ---
 
 ## 4. Thay thế 3 — `mitt` (nếu thật sự cần pub/sub)
 
+Mục này nói về "trường hợp ngoại lệ cuối cùng": khi bạn chỉ cần cơ chế pub/sub thuần (cầu nối với code ngoài Vue, iframe, Worker), `mitt` thay thế event bus bằng một thư viện nhỏ gọn ngoài framework.
+
 Trong vài tình huống đặc biệt (cầu nối giữa code ngoài Vue và app Vue, iframe, Worker...), pub/sub vẫn hữu ích. Cài một thư viện nhỏ:
 
-```bash
-npm install mitt
-```
+> 📄 **Code ví dụ:** [`examples/06-4-thay-the-3-mitt-neu-that-su.sh`](examples/06-4-thay-the-3-mitt-neu-that-su.sh)
 
-```ts
-// eventBus.ts
-import mitt from 'mitt'
+> 📄 **Code ví dụ:** [`examples/07-4-thay-the-3-mitt-neu-that-su.ts`](examples/07-4-thay-the-3-mitt-neu-that-su.ts)
 
-type Events = {
-  'cart-updated': { count: number }
-}
+> 📄 **Code ví dụ:** [`examples/08-4-thay-the-3-mitt-neu-that-su.ts`](examples/08-4-thay-the-3-mitt-neu-that-su.ts)
 
-export const emitter = mitt<Events>()
-```
-
-```ts
-// Phát sự kiện (bất kỳ đâu — kể cả code ngoài component)
-eventBus.emit('cart-updated', { count: 3 })
-```
-
-```vue
-<!-- Nghe sự kiện — luôn hủy đăng ký khi component unmount -->
-<script setup>
-import { onMounted, onUnmounted } from 'vue'
-import { eventBus } from '@/eventBus'
-
-const onCartUpdated = (payload) => console.log('cart:', payload)
-
-onMounted(() => eventBus.on('cart-updated', onCartUpdated))
-onUnmounted(() => eventBus.off('cart-updated', onCartUpdated))  // ⚠️ BẮT BUỘC
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/09-4-thay-the-3-mitt-neu-that-su.vue`](examples/09-4-thay-the-3-mitt-neu-that-su.vue)
 
 > 💡 Quy tắc dùng mitt an toàn:
 > - Đăng ký trong `onMounted`, **luôn** `off()` trong `onUnmounted`.
 > - Đặt loại sự kiện (`type Events`) vào một file duy nhất.
 > - Chỉ dùng khi `provide/inject` + Pinia không giải quyết được — ưu tiên cả hai trước.
 
+> **Tóm gọn 1 câu:** `mitt` là "đài phát thanh có kỷ luật" — vẫn pub/sub, nhưng bạn phải tự gỡ đăng ký, còn không thì memory leak như ngày xưa.
+
 ---
 
 ## 5. Bảng so sánh — chọn công cụ thay thế
+
+Mục này là bản đồ quyết định: nhìn nhu cầu của bạn ở cột trái, chọn ngay giải pháp ở cột phải.
 
 | Nhu cầu | Giải pháp thay Event Bus |
 |---|---|
@@ -158,16 +103,15 @@ onUnmounted(() => eventBus.off('cart-updated', onCartUpdated))  // ⚠️ BẮT 
 | Component ngoài Vue cần thông báo vào Vue | `mitt` hoặc một hàm callback được app cung cấp |
 | Global event thật sự (sự kiện window, keydown) | addEventListener trực tiếp trong `onMounted` + cleanup |
 
+> **Cách đọc bảng này:** dò theo hàng ngang từ nhu cầu thực tế của bạn — hầu hết mọi trường hợp đều có một "đường chính thống" thay cho event bus, không cần nghĩ thêm.
+
 ---
 
 ## 6. Mã tham khảo: Event Bus "tự chế" bằng cách nào trong Vue 2 (chỉ để hiểu lịch sử)
 
-```js
-// Vue 2 — KHÔNG chạy được trên Vue 3
-const bus = new Vue()
-bus.$emit('hello', 42)                 // phát
-bus.$on('hello', (v) => console.log(v)) // nghe
-```
+Mục này là "bảo tàng": xem cách người ta dựng event bus trong Vue 2 để khi gặp code cũ bạn nhận ra ngay và biết đường chuyển đổi.
+
+> 📄 **Code ví dụ:** [`examples/10-6-ma-tham-khao-event-bus-tu-che.js`](examples/10-6-ma-tham-khao-event-bus-tu-che.js)
 
 Nếu bạn gặp code cũ như vậy khi refactor dự án Vue 2 → Vue 3, hãy:
 
@@ -175,6 +119,8 @@ Nếu bạn gặp code cũ như vậy khi refactor dự án Vue 2 → Vue 3, hã
 2. Xác định dữ liệu có phải **state chia sẻ** không → đưa vào Pinia.
 3. Nếu chỉ là **thông báo một chiều** → chuyển sang `emit`/`provide-inject`.
 4. Nếu là cầu nối với mã ngoài → dùng `mitt` + dọn dẹp trong `onUnmounted`.
+
+> **Tóm gọn 1 câu:** Gặp bus trong code cũ đừng xóa vội — phân loại nhu cầu (emit / Pinia / provide-inject / mitt) rồi chuyển từng cụm một.
 
 ---
 
@@ -189,39 +135,21 @@ Nếu bạn gặp code cũ như vậy khi refactor dự án Vue 2 → Vue 3, hã
 
 ## 7. Gói pub/sub thành composable (thay bus bằng API của Vue)
 
+Mục này nói về cách "dọn dẹp tự động": bọc pub/sub vào composable để listener tự hủy theo vòng đời component — không ai phải nhớ `off()` nữa.
+
 Nếu dự án bạn dùng pub/sub ở nhiều chỗ, đóng gói vào một composable để các component **tự dọn dẹp** — không ai quên `off()`:
 
-```ts
-// composables/useEventBus.ts
-import { onScopeDispose } from 'vue'
-import mitt from 'mitt'
+> 📄 **Code ví dụ:** [`examples/11-7-goi-pub-sub-thanh-composable-thay-bus.ts`](examples/11-7-goi-pub-sub-thanh-composable-thay-bus.ts)
 
-export const emitter = mitt()
-
-/** Đăng ký handler và tự hủy khi scope (component) bị hủy */
-export function onBus(type, handler) {
-  emitter.on(type, handler)
-  onScopeDispose(() => emitter.off(type, handler))   // ⭐ tự dọn dẹp
-}
-
-export const emitBus = emitter.emit
-```
-
-```vue
-<!-- Dùng — không cần onUnmounted nữa -->
-<script setup>
-import { onBus, emitBus } from '@/composables/useEventBus'
-
-onBus('cart-updated', (payload) => console.log(payload))
-emitBus('cart-updated', { count: 1 })
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/12-7-goi-pub-sub-thanh-composable-thay-bus.vue`](examples/12-7-goi-pub-sub-thanh-composable-thay-bus.vue)
 
 📌 `onScopeDispose` chạy khi scope hiệu ứng (component) bị hủy — đây là cách "unmount" của composition world. Mọi listener trong composable nên đi kèm nó.
 
 ---
 
 ## 8. Anti-pattern cần tránh
+
+Mục này là "danh sách đen": những thói quen dễ tạo ra "event bus biến tướng" mới — đọc để khỏi lặp lại sai lầm của các dự án trước.
 
 - **Bus làm "kênh mặc định"**: dự án mới chớ thiết kế giao tiếp qua sự kiện toàn cục — hãy bắt đầu từ props/emit + Pinia, chỉ "nới lỏng" khi thật sự cần.
 - **Sự kiện lặp tên trùng** ở nhiều nơi (`'update'` được mọi component phát) → không thể phân biệt nguồn. Đặt tên sự kiện theo domain: `'order:created'`, `'cart:updated'`.
@@ -234,6 +162,8 @@ emitBus('cart-updated', { count: 1 })
 2. ✅ Phân loại: giao tiếp con→cha? (→ `emit`) — dữ liệu chia sẻ? (→ Pinia) — cầu nối ngoài? (→ mitt).
 3. ✅ Thay từng cụm một và chạy test sau mỗi thay đổi.
 4. ✅ Kiểm tra `onUnmounted`/`onScopeDispose` với mọi listener còn lại.
+
+> **Tóm gọn 1 câu:** Anti-pattern của bus đều xoay quanh "ẩn và quên" — nguồn ẩn, tên trùng, payload nặng, quên dọn; composable ở mục 7 là thuốc chữa cả bốn.
 
 ---
 

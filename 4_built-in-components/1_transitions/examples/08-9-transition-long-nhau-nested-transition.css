@@ -1,0 +1,8 @@
+.nested-enter-active .inner {
+  transition: all 0.3s ease;
+}
+
+.nested-enter-from .inner {
+  transform: translateX(30px);
+  opacity: 0;
+}

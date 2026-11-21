@@ -1,0 +1,14 @@
+<template>
+  <p>{{ rawHtml }}</p>
+  <p v-html="rawHtml"></p>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      rawHtml: '<span style="color:red">Vue rất tuyệt!</span>'
+    }
+  }
+}
+</script>

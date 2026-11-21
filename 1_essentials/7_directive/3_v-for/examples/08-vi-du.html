@@ -1,0 +1,5 @@
+<li v-for="item in items">
+  <span v-for="child in item.children">
+    {{ item.message }} - {{ child }}
+  </span>
+</li>

@@ -1,0 +1,7 @@
+<input :ref="(el) => {
+  if (el) {
+    console.log('mounted', el)
+  } else {
+    console.log('unmounted')
+  }
+}" />

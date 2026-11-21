@@ -2,30 +2,23 @@ Dưới đây là tóm tắt đầy đủ – chi tiết – dễ hiểu bài Li
 
 # 1. v-for – Render danh sách từ mảng
 
+Mục này mở bài bằng "vòng lặp trên template": cách biến một mảng dữ liệu thành nhiều phần tử HTML.
+
 ## Khái niệm
 
 `v-for` dùng để lặp qua một mảng và render phần tử tương ứng.
 
+Ví von: `v-for` giống như **máy photo phát một tờ mẫu cho mỗi học sinh trong danh sách** — mảng (danh sách) có bao nhiêu tên, template in bấy nhiêu bản.
+
 Cú pháp cơ bản:
 
-```html
-v-for="item in items"
-```
+> 📄 **Code ví dụ:** [`examples/01-khai-niem.html`](examples/01-khai-niem.html)
 
 ## Ví dụ
 
-```js
-const items = ref([
-  { message: 'Foo' },
-  { message: 'Bar' }
-])
-```
+> 📄 **Code ví dụ:** [`examples/02-vi-du.js`](examples/02-vi-du.js)
 
-```html
-<li v-for="item in items">
-  {{ item.message }}
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/03-vi-du.html`](examples/03-vi-du.html)
 
 > 👉 Kết quả:
 >
@@ -40,11 +33,7 @@ const items = ref([
 
 ## Ví dụ
 
-```html
-<li v-for="(item, index) in items">
-  {{ index }} - {{ item.message }}
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/04-vi-du.html`](examples/04-vi-du.html)
 
 > 👉 Kết quả:
 >
@@ -62,11 +51,7 @@ Bên trong `v-for`:
 
 Tương đương JavaScript:
 
-```js
-items.forEach((item, index) => {
-  console.log(item.message, index)
-})
-```
+> 📄 **Code ví dụ:** [`examples/05-khai-niem.js`](examples/05-khai-niem.js)
 
 # 4. Destructuring trong v-for
 
@@ -76,19 +61,11 @@ Có thể destructuring object giống như tham số hàm JS.
 
 ## Ví dụ
 
-```html
-<li v-for="{ message } in items">
-  {{ message }}
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/06-vi-du.html`](examples/06-vi-du.html)
 
 Hoặc có index:
 
-```html
-<li v-for="({ message }, index) in items">
-  {{ index }} - {{ message }}
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/07-vi-du.html`](examples/07-vi-du.html)
 
 # 5. v-for lồng nhau (Nested loop)
 
@@ -98,13 +75,7 @@ Hoặc có index:
 
 ## Ví dụ
 
-```html
-<li v-for="item in items">
-  <span v-for="child in item.children">
-    {{ item.message }} - {{ child }}
-  </span>
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/08-vi-du.html`](examples/08-vi-du.html)
 
 # 6. in và of trong v-for
 
@@ -113,9 +84,7 @@ Hoặc có index:
 - `in` và `of` tương đương nhau
 - `of` giống cú pháp JavaScript hơn
 
-```html
-<div v-for="item of items"></div>
-```
+> 📄 **Code ví dụ:** [`examples/09-khai-niem.html`](examples/09-khai-niem.html)
 
 # 7. v-for với Object
 
@@ -126,35 +95,17 @@ Hoặc có index:
 
 ## Ví dụ
 
-```js
-const myObject = reactive({
-  title: 'Vue Lists',
-  author: 'Jane Doe',
-  year: 2024
-})
-```
+> 📄 **Code ví dụ:** [`examples/10-vi-du.js`](examples/10-vi-du.js)
 
-```html
-<li v-for="value in myObject">
-  {{ value }}
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/11-vi-du.html`](examples/11-vi-du.html)
 
 Có key:
 
-```html
-<li v-for="(value, key) in myObject">
-  {{ key }}: {{ value }}
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/12-vi-du.html`](examples/12-vi-du.html)
 
 Có index:
 
-```html
-<li v-for="(value, key, index) in myObject">
-  {{ index }} - {{ key }}: {{ value }}
-</li>
-```
+> 📄 **Code ví dụ:** [`examples/13-vi-du.html`](examples/13-vi-du.html)
 
 # 8. v-for với Range (số nguyên)
 
@@ -164,9 +115,7 @@ Lặp từ 1 → n (không phải từ 0)
 
 ## Ví dụ
 
-```html
-<span v-for="n in 5">{{ n }}</span>
-```
+> 📄 **Code ví dụ:** [`examples/14-vi-du.html`](examples/14-vi-du.html)
 
 > 👉 Kết quả:
 >
@@ -181,14 +130,7 @@ Lặp từ 1 → n (không phải từ 0)
 
 ## Ví dụ
 
-```html
-<ul>
-  <template v-for="item in items">
-    <li>{{ item.message }}</li>
-    <li class="divider"></li>
-  </template>
-</ul>
-```
+> 📄 **Code ví dụ:** [`examples/15-vi-du.html`](examples/15-vi-du.html)
 
 # 10. v-for kết hợp với v-if (⚠️ Quan trọng)
 
@@ -199,29 +141,21 @@ Lặp từ 1 → n (không phải từ 0)
 
 ❌ Sai:
 
-```html
-<li v-for="todo in todos" v-if="!todo.done">
-```
+> 📄 **Code ví dụ:** [`examples/16-nguyen-tac.html`](examples/16-nguyen-tac.html)
 
 ✅ Đúng:
 
-```html
-<template v-for="todo in todos">
-  <li v-if="!todo.done">{{ todo.name }}</li>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/17-nguyen-tac.html`](examples/17-nguyen-tac.html)
 
 ## Best Practice
 
 Lọc dữ liệu bằng `computed`
 
-```js
-const activeTodos = computed(() =>
-  todos.value.filter(t => !t.done)
-)
-```
+> 📄 **Code ví dụ:** [`examples/18-best-practice.js`](examples/18-best-practice.js)
 
 # 11. key – Duy trì trạng thái danh sách
+
+Mục này nói về "giấy chứng minh thư" của từng phần tử trong danh sách — vì sao thiếu nó là Vue tái sử dụng DOM sai.
 
 ## Khái niệm
 
@@ -230,13 +164,11 @@ const activeTodos = computed(() =>
 - Theo dõi đúng phần tử
 - Không làm mất state (input, component…)
 
+> **Tóm gọn 1 câu:** `key` là "CMND của mỗi item" — có nó thì Vue biết ai là ai khi danh sách xáo trộn, state của input/component mới không bị "chuyển nhượng" nhầm.
+
 ## Ví dụ
 
-```html
-<div v-for="item in items" :key="item.id">
-  {{ item.message }}
-</div>
-```
+> 📄 **Code ví dụ:** [`examples/19-vi-du.html`](examples/19-vi-du.html)
 
 > ⚠️ Lưu ý:
 >
@@ -252,16 +184,11 @@ const activeTodos = computed(() =>
 
 ## Ví dụ
 
-```html
-<TodoItem
-  v-for="(todo, index) in todos"
-  :key="todo.id"
-  :todo="todo"
-  :index="index"
-/>
-```
+> 📄 **Code ví dụ:** [`examples/20-vi-du.html`](examples/20-vi-du.html)
 
 # 13. Vue & Array Change Detection
+
+Mục này nói về "từ điển hành động" Vue hiểu được: những method nào gọi là Vue biết ngay có thay đổi.
 
 Vue theo dõi được các method sau:
 
@@ -273,15 +200,13 @@ Vue theo dõi được các method sau:
 - `sort()`
 - `reverse()`
 
+> **Tóm gọn 1 câu:** Bảy method mutate ở trên được Vue "làm án"/theo dõi sẵn — gọi là UI cập nhật ngay, không cần làm gì thêm.
+
 # 14. Thay thế mảng (Non-mutating methods)
 
 ## Ví dụ
 
-```js
-items.value = items.value.filter(item =>
-  item.message.includes('Foo')
-)
-```
+> 📄 **Code ví dụ:** [`examples/21-vi-du.js`](examples/21-vi-du.js)
 
 > 👉 Vue không render lại toàn bộ, mà tái sử dụng DOM thông minh.
 
@@ -289,25 +214,13 @@ items.value = items.value.filter(item =>
 
 Dùng `computed`
 
-```js
-const evenNumbers = computed(() =>
-  numbers.value.filter(n => n % 2 === 0)
-)
-```
+> 📄 **Code ví dụ:** [`examples/22-15-hien-thi-danh-sach-loc-sap-xep.js`](examples/22-15-hien-thi-danh-sach-loc-sap-xep.js)
 
-```html
-<li v-for="n in evenNumbers">{{ n }}</li>
-```
+> 📄 **Code ví dụ:** [`examples/23-15-hien-thi-danh-sach-loc-sap-xep.html`](examples/23-15-hien-thi-danh-sach-loc-sap-xep.html)
 
 ⚠️ Cẩn thận với `sort()` & `reverse()`
 
-```js
-// Sai
-numbers.reverse()
-
-// Đúng
-[...numbers].reverse()
-```
+> 📄 **Code ví dụ:** [`examples/24-15-hien-thi-danh-sach-loc-sap-xep.js`](examples/24-15-hien-thi-danh-sach-loc-sap-xep.js)
 
 # Tóm tắt nhanh (cheat-sheet)
 
@@ -320,4 +233,8 @@ numbers.reverse()
 | **Kết hợp v-if** | Dùng `<template>` |
 | **Giữ state** | `:key` |
 | **Component** | Truyền props |
+
+> **Cách đọc bảng này:** cột trái là việc bạn cần làm, cột phải là cú pháp/kỹ thuật tương ứng. Đây là bảng tra cứu — code đến đâu đối chiếu đến đó, chi tiết thì quay lại section ở trên.
+
+> **Tóm gọn 1 câu:** `v-for` là vòng lặp của template — nhớ "item + index", "key giữ state", "lọc bằng computed" là xử lý được 90% danh sách.
 

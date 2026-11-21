@@ -1,13 +1,10 @@
+# Component `v-model` trong Vue 3
 
-You said:
-
-tóm tắt nội dung bài học (đầy đủ, chi tiết, dễ hiểu) và cung cấp ví dụ cho từng phần
-ChatGPT said:
-Dưới đây là tóm tắt đầy đủ – chi tiết – dễ hiểu bài học Component v-model trong Vue 3, kèm ví dụ minh họa cho từng phần để bạn dễ nắm và áp dụng 👍
+Bài này đi qua toàn bộ cách dùng `v-model` trên component trong Vue 3 — từ `defineModel()` hiện đại cho đến modifiers tùy biến — mỗi phần đều có ví dụ kèm theo để bạn làm theo được ngay.
 
 # 1. `v-model` trên Component là gì?
 
-`v-model` dùng để liên kết dữ liệu hai chiều (two-way binding) giữa component cha (parent) và component con (child).
+Bạn đã quen gắn `v-model` lên `<input>` — giờ là lúc "nâng cấp" nó lên cấp component. `v-model` liên kết dữ liệu hai chiều (two-way binding) giữa component cha (parent) và component con (child), giống như một đường dây điện thoại hai chiều: bên nào nói, bên kia đều nghe được.
 - Khi parent thay đổi dữ liệu → child cập nhật
 - Khi child cập nhật dữ liệu → parent cũng thay đổi theo
 
@@ -16,239 +13,147 @@ Dưới đây là tóm tắt đầy đủ – chi tiết – dễ hiểu bài h�
 - Form component
 - Modal, checkbox, select, datepicker custom…
 
+> **Tóm gọn 1 câu:** `v-model` trên component là "đường dây nóng hai chiều" giữa cha và con — bên nào đổi, bên kia tự cập nhật theo.
+
 # 2. Cách dùng `v-model` trong Vue 3.4+ (khuyến nghị)
+
+Mục này nói về cách viết chuẩn hiện nay — nếu dự án của bạn dùng Vue 3.4 trở lên, đây là đường đi ngắn nhất.
 
 ## 2.1. `defineModel()` – cách hiện đại & ngắn gọn nhất
 
+Từ Vue 3.4, bạn chỉ cần một dòng `defineModel()` thay vì tự khai báo prop + event. Giống như được cấp sẵn bộ ghép nối thay vì tự bắt hai sợi dây lại.
+
 **📌 Component con (`Child.vue`):**
 
-```html
-<script setup>
-const model = defineModel()
-
-function increment() {
-  model.value++
-}
-</script>
-
-<template>
-  <div>Giá trị từ parent: {{ model }}</div>
-  <button @click="increment">Tăng</button>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/01-2-1-definemodel-cach-hien-ai-ngan-gon.html`](examples/01-2-1-definemodel-cach-hien-ai-ngan-gon.html)
 
 **📌 Component cha (`Parent.vue`):**
 
-```html
-<script setup>
-import { ref } from 'vue'
-import Child from './Child.vue'
-
-const count = ref(0)
-</script>
-
-<template>
-  <Child v-model="count" />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/02-2-1-definemodel-cach-hien-ai-ngan-gon.html`](examples/02-2-1-definemodel-cach-hien-ai-ngan-gon.html)
 
 🔍 Giải thích:
 - `defineModel()` trả về ref
 - `model.value` luôn đồng bộ với biến ở parent
 - Thay đổi ở child → parent tự cập nhật
 
+> **Tóm gọn 1 câu:** Một dòng `defineModel()` là có ngay hai chiều cha ↔ con — Vue tự lo phần "rút dây" phía sau.
+
 # 3. Bọc input native bằng `v-model`
 
-Rất phổ biến khi tạo component input riêng.
+Mục này nói về ứng dụng phổ biến nhất của `v-model` trên component: gói một `<input>` thường thành component input của riêng bạn.
 
 **📌 `Child.vue`:**
 
-```html
-<script setup>
-const model = defineModel()
-</script>
-
-<template>
-  <input v-model="model" />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/03-3-boc-input-native-bang-v-model.html`](examples/03-3-boc-input-native-bang-v-model.html)
 
 **📌 `Parent.vue`:**
 
-```html
-<script setup>
-import { ref } from 'vue'
-import Child from './Child.vue'
-
-const text = ref('')
-</script>
-
-<template>
-  <Child v-model="text" />
-  <p>{{ text }}</p>
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/04-3-boc-input-native-bang-v-model.html`](examples/04-3-boc-input-native-bang-v-model.html)
 
 👉 Input trong child thay đổi → text trong parent cũng đổi
 
+> **Tóm gọn 1 câu:** Bọc `<input v-model="model" />` là bạn có ngay component input riêng mà cha vẫn dùng như `<input>` thường.
+
 # 4. `v-model` hoạt động “bên trong” như thế nào?
+
+Mục này "mở nắp máy" cho bạn xem bên trong: hiểu được cách Vue dịch `v-model` ra prop + event, bạn sẽ không bối rối khi gặp code cũ viết thủ công.
 
 `defineModel()` thực chất được Vue biên dịch thành:
 - prop: `modelValue`
 - event: `update:modelValue`
 
+Ví von: `defineModel()` giống như quả cầu thần kỳ gom hai món đồ (prop để nhận, event để gửi) thành một — còn đây là cách tự làm thủ công trước khi có quả cầu:
+
 **📌 Cách viết thủ công (trước Vue 3.4):**
 
-```html
-<script setup>
-const props = defineProps(['modelValue'])
-const emit = defineEmits(['update:modelValue'])
-</script>
-
-<template>
-  <input
-    :value="props.modelValue"
-    @input="emit('update:modelValue', $event.target.value)"
-  />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/05-4-v-model-hoat-ong-ben-trong-nhu.html`](examples/05-4-v-model-hoat-ong-ben-trong-nhu.html)
 
 **📌 Khi parent viết:**
-```html
-<Child v-model="text" />
-```
+> 📄 **Code ví dụ:** [`examples/06-4-v-model-hoat-ong-ben-trong-nhu.html`](examples/06-4-v-model-hoat-ong-ben-trong-nhu.html)
 
 👉 Vue tự chuyển thành:
-```html
-<Child
-  :modelValue="text"
-  @update:modelValue="text = $event"
-/>
-```
+> 📄 **Code ví dụ:** [`examples/07-4-v-model-hoat-ong-ben-trong-nhu.html`](examples/07-4-v-model-hoat-ong-ben-trong-nhu.html)
+
+> **Tóm gọn 1 câu:** `v-model` chỉ là "đường" cho cặp prop `modelValue` + event `update:modelValue` — `defineModel()` tự viết giúp bạn đường đó.
 
 # 5. Khai báo option cho `v-model`
 
+Mục này nói về việc tinh chỉnh model như một prop thật sự: giá trị mặc định, kiểm tra kiểu, bắt buộc truyền — vì `defineModel()` tạo ra prop nên nó hưởng mọi quyền của prop.
+
 Vì `defineModel()` tạo ra prop → bạn có thể cấu hình:
 
-```js
-const model = defineModel({ required: true })
-```
+> 📄 **Code ví dụ:** [`examples/08-5-khai-bao-option-cho-v-model.js`](examples/08-5-khai-bao-option-cho-v-model.js)
 
 Hoặc:
 
-```js
-const model = defineModel({ default: 0 })
-```
+> 📄 **Code ví dụ:** [`examples/09-5-khai-bao-option-cho-v-model.js`](examples/09-5-khai-bao-option-cho-v-model.js)
 
 > [!WARNING]
 > - Nếu dùng `default` mà parent không truyền giá trị, có thể gây mất đồng bộ
 > - Nên luôn đảm bảo parent có giá trị khởi tạo
 
+> **Tóm gọn 1 câu:** Model là prop thật nên được cấu hình đầy đủ — nhưng cẩn thận với `default`: thiếu giá trị khởi tạo ở cha là dễ "lạc nhịp" đồng bộ.
+
 # 6. `v-model` có tham số (Arguments)
 
-Dùng khi muốn đặt tên khác cho model
+Mục này nói về cách đặt tên riêng cho model thay vì mặc định `modelValue` — như dán nhãn lên từng kênh truyền thay vì dùng chung một kênh.
+
+Dùng khi muốn đặt tên khác cho model, ví von: thay vì một kênh vô danh "kênh 0", bạn gọi thẳng "kênh tiêu đề".
 
 **📌 Parent:**
-```html
-<MyComponent v-model:title="bookTitle" />
-```
+> 📄 **Code ví dụ:** [`examples/10-6-v-model-co-tham-so-arguments.html`](examples/10-6-v-model-co-tham-so-arguments.html)
 
 **📌 Child:**
-```html
-<script setup>
-const title = defineModel('title')
-</script>
-
-<template>
-  <input v-model="title" />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/11-6-v-model-co-tham-so-arguments.html`](examples/11-6-v-model-co-tham-so-arguments.html)
 
 👉 Thay vì `modelValue` → Vue dùng:
 - prop: `title`
 - event: `update:title`
 
+> **Tóm gọn 1 câu:** `v-model:title` đổi "kênh" từ `modelValue` sang `title` — prop và event đổi tên theo, còn cách dùng thì y nguyên.
+
 # 7. Multiple `v-model` (nhiều `v-model` trên 1 component)
 
+Mục này nói về việc gắn nhiều `v-model` cùng lúc lên một component — mỗi model một kênh riêng, như một bàn switch có nhiều nút bấm độc lập.
+
 **📌 Parent:**
-```html
-<UserName
-  v-model:first-name="first"
-  v-model:last-name="last"
-/>
-```
+> 📄 **Code ví dụ:** [`examples/12-7-multiple-v-model-nhieu-v-model-tren.html`](examples/12-7-multiple-v-model-nhieu-v-model-tren.html)
 
 **📌 Child:**
-```html
-<script setup>
-const firstName = defineModel('firstName')
-const lastName = defineModel('lastName')
-</script>
-
-<template>
-  <input v-model="firstName" />
-  <input v-model="lastName" />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/13-7-multiple-v-model-nhieu-v-model-tren.html`](examples/13-7-multiple-v-model-nhieu-v-model-tren.html)
 👉 Mỗi `v-model` tương ứng với 1 prop riêng
+
+> **Tóm gọn 1 câu:** Một component nhận được nhiều `v-model` cùng lúc — mỗi cái một tên, một prop riêng, không xung đột.
 
 # 8. `v-model` Modifiers (tuỳ biến `.trim`, `.number`, …)
 
+Mục này nói về lớp hoàn thiện cuối cùng: modifier cho phép component con "biết" cha đã kèm gạch chú ý gì (`.trim`, `.number`...) và tự xử lý giá trị trước khi trả về — giống như máy lọc nước biết bạn chọn vòi thường hay vòi tinh khiết để cho ra dòng nước tương ứng.
+
 **📌 Parent:**
-```html
-<MyComponent v-model.capitalize="text" />
-```
+> 📄 **Code ví dụ:** [`examples/14-8-v-model-modifiers-tuy-bien-trim-number.html`](examples/14-8-v-model-modifiers-tuy-bien-trim-number.html)
 
 **📌 Child – đọc modifiers:**
-```html
-<script setup>
-const [model, modifiers] = defineModel()
-
-console.log(modifiers) // { capitalize: true }
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/15-8-v-model-modifiers-tuy-bien-trim-number.html`](examples/15-8-v-model-modifiers-tuy-bien-trim-number.html)
 
 **📌 Xử lý modifier bằng `set()`:**
-```html
-<script setup>
-const [model, modifiers] = defineModel({
-  set(value) {
-    if (modifiers.capitalize) {
-      return value.charAt(0).toUpperCase() + value.slice(1)
-    }
-    return value
-  }
-})
-</script>
-
-<template>
-  <input v-model="model" />
-</template>
-```
+> 📄 **Code ví dụ:** [`examples/16-8-v-model-modifiers-tuy-bien-trim-number.html`](examples/16-8-v-model-modifiers-tuy-bien-trim-number.html)
 👉 Khi nhập "hello" → parent nhận "Hello"
+
+> **Tóm gọn 1 câu:** Modifier là "ghi chú" cha gửi kèm theo `v-model` — con đọc qua `modifiers` và tự quyết định biến đổi giá trị thế nào trước khi trả về.
 
 # 9. Modifiers + Arguments
 
+Mục này ghép hai mảnh trước lại với nhau: vừa đặt tên model vừa kèm modifier — tất cả các mảnh ghép của `v-model` đều có thể phối hợp với nhau.
+
 **📌 Parent:**
-```html
-<UserName
-  v-model:first-name.capitalize="first"
-  v-model:last-name.uppercase="last"
-/>
-```
+> 📄 **Code ví dụ:** [`examples/17-9-modifiers-arguments.html`](examples/17-9-modifiers-arguments.html)
 
 **📌 Child:**
-```html
-<script setup>
-const [firstName, firstNameModifiers] = defineModel('firstName')
-const [lastName, lastNameModifiers] = defineModel('lastName')
-
-console.log(firstNameModifiers) // { capitalize: true }
-console.log(lastNameModifiers)  // { uppercase: true }
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/18-9-modifiers-arguments.html`](examples/18-9-modifiers-arguments.html)
 
 # 10. Tổng kết nhanh (cheat sheet)
+
+Mục này gom tất cả cách viết `v-model` thành một bảng tra nhanh — khi quên cú pháp, nhìn một cái là ra.
 
 | Trường hợp | Cách làm |
 | :--- | :--- |
@@ -258,3 +163,7 @@ console.log(lastNameModifiers)  // { uppercase: true }
 | **Modifier** | `const [model, modifiers] = defineModel()` |
 | **Tùy biến giá trị** | `defineModel({ get, set })` |
 | **Bọc input** | `<input v-model="model" />` |
+
+> **Cách đọc bảng này:** cột trái là tình huống bạn đang gặp, cột phải là cú pháp dùng ngay — dò theo hàng ngang, không cần đọc theo thứ tự.
+
+> **Tóm gọn 1 câu:** `defineModel()` là chìa khóa vạn năng của `v-model` trên component — thêm tên, modifier hay `get`/`set` tùy tình huống.

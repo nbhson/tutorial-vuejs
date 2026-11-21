@@ -1,8 +1,10 @@
 # Dynamic Components trong Vue 3: Tóm tắt Đầy đủ & Dễ hiểu
 
-Dưới đây là tóm tắt ngắn gọn và súc tích về cách sử dụng **Dynamic Components** (Component động) trong Vue 3. 👇
+Bài này nói về cách "đổi diễn viên trên cùng một sân khấu": một vị trí render duy nhất, nhiều component thay nhau lên — dùng `<component :is>` thay cho chuỗi `v-if` dài lê thê.
 
 ## 1. Khi nào dùng?
+
+Mục này trả lời "đời sống thực" của dynamic component: mọi tình huống có nhiều màn hình thay nhau chiếm cùng một chỗ.
 
 Sử dụng khi bạn muốn chuyển đổi qua lại giữa các component khác nhau tại cùng một vị trí mà không muốn dùng quá nhiều lệnh `v-if` / `v-else`.
 
@@ -13,18 +15,16 @@ Sử dụng khi bạn muốn chuyển đổi qua lại giữa các component kh�
 
 ## 2. Cú pháp
 
+Mục này nói về cách viết: phần tử đặc biệt `<component>` với attribute `:is` — `:is` nhận "diễn viên" dưới dạng tên (string) hoặc đối tượng component (object).
+
 Sử dụng phần tử đặc biệt `<component>` kết hợp với attribute `:is`.
 
 **Cách 1: Truyền bằng tên (String)**
-```html
-<component :is="currentTab" />
-```
+> 📄 **Code ví dụ:** [`examples/01-2-cu-phap.html`](examples/01-2-cu-phap.html)
 *(`currentTab` là một chuỗi chứa tên component đã được đăng ký)*
 
 **Cách 2: Truyền bằng đối tượng (Object)**
-```html
-<component :is="tabs[currentTab]" />
-```
+> 📄 **Code ví dụ:** [`examples/02-2-cu-phap.html`](examples/02-2-cu-phap.html)
 *(`tabs[currentTab]` trả về trực tiếp đối tượng component đã được import)*
 
 > [!TIP]
@@ -34,10 +34,10 @@ Sử dụng phần tử đặc biệt `<component>` kết hợp với attribute 
 
 ## 3. Giữ trạng thái với `<KeepAlive>`
 
+Mục này nói về cái giá phải trả khi đổi component: mặc định diễn viên cũ bị "hạ màn" hoàn toàn mất hết đạo cụ — muốn giữ đạo cụ thì bọc `<KeepAlive>`.
+
 Mặc định, khi chuyển đổi, component cũ sẽ bị **unmount** (hủy bỏ hoàn toàn). Nếu bạn muốn giữ lại trạng thái (ví dụ: dữ liệu đã nhập trong input), hãy bọc nó bằng `<KeepAlive>`.
 
-```html
-<KeepAlive>
-  <component :is="currentTab" />
-</KeepAlive>
-```
+> 📄 **Code ví dụ:** [`examples/03-3-giu-trang-thai-voi-keepalive.html`](examples/03-3-giu-trang-thai-voi-keepalive.html)
+
+> **Tóm gọn 1 câu:** `<component :is>` là "sân khấu xoay diễn viên" — thêm `<KeepAlive>` thì diễn viên ra sân vẫn cầm nguyên đạo cụ khi trở lại.

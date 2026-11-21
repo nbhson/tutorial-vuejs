@@ -1,0 +1,14 @@
+<script setup>
+import { useTemplateRef, onMounted } from 'vue'
+import Child from './Child.vue'
+
+const childRef = useTemplateRef('child')
+
+onMounted(() => {
+  console.log(childRef.value)
+})
+</script>
+
+<template>
+  <Child ref="child" />
+</template>

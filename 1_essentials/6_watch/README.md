@@ -2,9 +2,13 @@ Dưới đây là bản tóm tắt đầy đủ – chi tiết – dễ hiểu b
 
 # 1. Watchers là gì? Dùng khi nào?
 
+Mục này mở bài: watcher là "người canh cửa" của dữ liệu — khi dữ liệu đổi, nó thi hành lệnh bạn dặn sẵn.
+
 ## Khái niệm
 
 Watchers dùng để theo dõi sự thay đổi của dữ liệu reactive và thực hiện side effects (tác động phụ) khi dữ liệu đó thay đổi.
+
+Ví von: computed là **người bán hàng** (sinh giá trị), còn watcher là **bảo vệ trực tổng đài** — không sinh ra gì cả, chỉ việc "có biến động thì gọi người, chạy tác vụ".
 
 Side effects thường là:
 
@@ -18,6 +22,8 @@ Side effects thường là:
 - Khi computed không phù hợp (computed chỉ dùng để trả về giá trị).
 - Khi bạn cần thực thi logic khi dữ liệu thay đổi (đặc biệt là async).
 
+> **Tóm gọn 1 câu:** Watcher = "bảo vệ trực tổng đài": đứng canh một nguồn dữ liệu, có biến động thì chạy side effect — những việc computed không được phép làm.
+
 # 2. Watcher với Options API (watch option)
 
 ## Cách dùng
@@ -28,23 +34,7 @@ Side effects thường là:
 
 ## Ví dụ
 
-```js
-export default {
-  data() {
-    return {
-      question: '',
-      answer: 'Questions usually contain a question mark.'
-    }
-  },
-  watch: {
-    question(newVal, oldVal) {
-      if (newVal.includes('?')) {
-        this.answer = 'You asked a question!'
-      }
-    }
-  }
-}
-```
+> 📄 **Code ví dụ:** [`examples/01-vi-du.js`](examples/01-vi-du.js)
 
 > 📌 newVal: giá trị mới
 > 📌 oldVal: giá trị cũ
@@ -53,94 +43,51 @@ export default {
 
 ## Cú pháp
 
-```js
-watch(source, callback, options?)
-```
+> 📄 **Code ví dụ:** [`examples/02-cu-phap.js`](examples/02-cu-phap.js)
 
 - `source`: ref / reactive / getter / array
 - `callback`: hàm chạy khi source đổi
 
 ## Ví dụ cơ bản
 
-```js
-import { ref, watch } from 'vue'
-
-const count = ref(0)
-
-watch(count, (newVal, oldVal) => {
-  console.log(newVal, oldVal)
-})
-```
+> 📄 **Code ví dụ:** [`examples/03-vi-du-co-ban.js`](examples/03-vi-du-co-ban.js)
 
 # 4. Các loại Watch Source
 
 ## 4.1 Watch một ref
 
-```js
-watch(count, (newVal) => {
-  console.log(newVal)
-})
-```
+> 📄 **Code ví dụ:** [`examples/04-4-1-watch-mot-ref.js`](examples/04-4-1-watch-mot-ref.js)
 
 ## 4.2 Watch bằng getter (phổ biến & an toàn)
 
-```js
-watch(
-  () => obj.count,
-  (count) => {
-    console.log(count)
-  }
-)
-```
+> 📄 **Code ví dụ:** [`examples/05-4-2-watch-bang-getter-pho-bien-an.js`](examples/05-4-2-watch-bang-getter-pho-bien-an.js)
 
 ❌ Sai (KHÔNG hoạt động):
 
-```js
-watch(obj.count, () => {})
-```
+> 📄 **Code ví dụ:** [`examples/06-4-2-watch-bang-getter-pho-bien-an.js`](examples/06-4-2-watch-bang-getter-pho-bien-an.js)
 
 ## 4.3 Watch nhiều nguồn (array)
 
-```js
-watch(
-  [x, () => y.value],
-  ([newX, newY]) => {
-    console.log(newX, newY)
-  }
-)
-```
+> 📄 **Code ví dụ:** [`examples/07-4-3-watch-nhieu-nguon-array.js`](examples/07-4-3-watch-nhieu-nguon-array.js)
 
 # 5. Deep Watchers (watch sâu)
+
+Mục này nói về cách canh được cả "từng ngăn kéo bên trong tủ", chứ không chỉ biết tủ bị thay nguyên cái.
 
 ## Mặc định
 
 - Watcher chỉ trigger khi object bị thay thế
 - ❌ Không trigger khi property bên trong thay đổi
 
+Hình dung: watcher mặc định chỉ "chú ý khi cả chiếc tủ bị khiêng đi" (thay object mới), chứ không biết "ai đó mở ngăn kéo lấy áo" (đổi property bên trong). Deep watcher buộc nó soi cả từng ngăn.
+
 ## 5.1 Deep watcher với Options API
 
-```js
-watch: {
-  user: {
-    handler(newVal) {
-      console.log(newVal)
-    },
-    deep: true
-  }
-}
-```
+> 📄 **Code ví dụ:** [`examples/08-5-1-deep-watcher-voi-options-api.js`](examples/08-5-1-deep-watcher-voi-options-api.js)
 
 ## 5.2 Deep watcher với Composition API
 
-```js
-watch(
-  () => state.user,
-  () => {
-    console.log('user changed')
-  },
-  { deep: true }
-)
-```
+> 📄 **Code ví dụ:** [`examples/09-5-2-deep-watcher-voi-composition-api.js`](examples/09-5-2-deep-watcher-voi-composition-api.js)
 
 > ⚠️ Cảnh báo hiệu năng
 >
@@ -157,15 +104,7 @@ Watcher chỉ chạy khi dữ liệu thay đổi
 
 Chạy ngay khi component được tạo
 
-```js
-watch(
-  id,
-  () => {
-    fetchData()
-  },
-  { immediate: true }
-)
-```
+> 📄 **Code ví dụ:** [`examples/10-mac-inh.js`](examples/10-mac-inh.js)
 
 > 📌 Thường dùng để:
 >
@@ -176,15 +115,7 @@ watch(
 
 Chỉ chạy 1 lần duy nhất
 
-```js
-watch(
-  source,
-  () => {
-    console.log('chạy 1 lần')
-  },
-  { once: true }
-)
-```
+> 📄 **Code ví dụ:** [`examples/11-7-once-watchers-once-true-vue-3-4.js`](examples/11-7-once-watchers-once-true-vue-3-4.js)
 
 # 8. watchEffect()
 
@@ -195,12 +126,7 @@ watch(
 
 ## Ví dụ
 
-```js
-watchEffect(async () => {
-  const res = await fetch(`/api/${id.value}`)
-  data.value = await res.json()
-})
-```
+> 📄 **Code ví dụ:** [`examples/12-vi-du.js`](examples/12-vi-du.js)
 
 > 📌
 >
@@ -215,16 +141,13 @@ watchEffect(async () => {
 | Kiểm soát chính xác | Code ngắn gọn |
 | Không auto run | Auto run |
 
+> **Cách đọc bảng này:** bảng so cột đối cột — cột trái là ưu điểm của `watch`, cột phải là của `watchEffect`. Chọn theo nhu cầu: cần kiểm soát chặt thì cột trái, cần code ngắn thì cột phải.
+
 🧠 So sánh với watch()
 
 Nếu bạn muốn theo dõi chính xác một biến, hãy dùng watch:
 
-```js
-watch(id, async () => {
-  const res = await fetch(`/api/${id.value}`)
-  data.value = await res.json()
-})
-```
+> 📄 **Code ví dụ:** [`examples/13-so-sanh-watch-vs-watcheffect.js`](examples/13-so-sanh-watch-vs-watcheffect.js)
 
 ✔ Rõ ràng
 ✔ Không bị hiểu nhầm dependency
@@ -238,25 +161,21 @@ watch(id, async () => {
 
 # 9. Cleanup side effects (hủy tác vụ cũ)
 
+Mục này nói về "lỗi đua kết quả" kinh điển của async — và cách Vue cho bạn một cơ chế hủy tác vụ cũ đúng lúc.
+
 ## Vấn đề
 
 API cũ trả về sau khi state đã đổi → dữ liệu sai
 
+Ví von: giống như **gọi hai chiếc taxi liên tiếp** — chiếc gọi sau mới là bạn muốn, nhưng chiếc gọi trước (chậm hơn) tới sau và "đón nhầm" bạn.
+
 ## Giải pháp với onCleanup
 
-```js
-watch(id, (newId, oldId, onCleanup) => {
-  const controller = new AbortController()
-
-  fetch(`/api/${newId}`, { signal: controller.signal })
-
-  onCleanup(() => {
-    controller.abort()
-  })
-})
-```
+> 📄 **Code ví dụ:** [`examples/14-giai-phap-voi-oncleanup.js`](examples/14-giai-phap-voi-oncleanup.js)
 
 > 📌 Rất quan trọng khi làm async
+
+> **Tóm gọn 1 câu:** Mỗi lần watcher chạy lại, dùng `onCleanup` để "hủy chuyến cũ" — tránh kết quả của request cũ ghi đè lên request mới.
 
 # 10. Thời điểm chạy watcher (flush)
 
@@ -266,33 +185,17 @@ Chạy trước khi DOM cập nhật
 
 ## `flush: 'post'` – sau DOM update
 
-```js
-watch(source, () => {
-  console.log('DOM đã update')
-}, { flush: 'post' })
-```
+> 📄 **Code ví dụ:** [`examples/15-flush-post-sau-dom-update.js`](examples/15-flush-post-sau-dom-update.js)
 
 ## `flush: 'sync'` – chạy ngay lập tức
 
-```js
-watch(source, () => {
-  console.log('sync')
-}, { flush: 'sync' })
-```
+> 📄 **Code ví dụ:** [`examples/16-flush-sync-chay-ngay-lap-tuc.js`](examples/16-flush-sync-chay-ngay-lap-tuc.js)
 
 > ⚠️ Không batching → dễ gây lag
 
 # 11. $watch() – tạo watcher thủ công
 
-```js
-created() {
-  const unwatch = this.$watch('count', (val) => {
-    console.log(val)
-  })
-
-  unwatch() // dừng watcher
-}
-```
+> 📄 **Code ví dụ:** [`examples/17-11-watch-tao-watcher-thu-cong.js`](examples/17-11-watch-tao-watcher-thu-cong.js)
 
 > 📌 Dùng khi:
 >
@@ -307,19 +210,11 @@ created() {
 
 ## Watch tạo async → phải dừng thủ công
 
-```js
-const stop = watchEffect(() => {})
-
-stop()
-```
+> 📄 **Code ví dụ:** [`examples/18-watch-tao-async-phai-dung-thu-cong.js`](examples/18-watch-tao-async-phai-dung-thu-cong.js)
 
 ❌ Không nên:
 
-```js
-setTimeout(() => {
-  watchEffect(() => {})
-}, 100)
-```
+> 📄 **Code ví dụ:** [`examples/19-watch-tao-async-phai-dung-thu-cong.js`](examples/19-watch-tao-async-phai-dung-thu-cong.js)
 
 # 13. Best Practices (khuyến nghị)
 

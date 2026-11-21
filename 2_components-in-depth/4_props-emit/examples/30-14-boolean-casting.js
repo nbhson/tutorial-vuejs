@@ -1,0 +1,3 @@
+defineProps({
+  disabled: Boolean
+})

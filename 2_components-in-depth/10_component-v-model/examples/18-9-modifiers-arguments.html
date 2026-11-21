@@ -1,0 +1,7 @@
+<script setup>
+const [firstName, firstNameModifiers] = defineModel('firstName')
+const [lastName, lastNameModifiers] = defineModel('lastName')
+
+console.log(firstNameModifiers) // { capitalize: true }
+console.log(lastNameModifiers)  // { uppercase: true }
+</script>

@@ -14,27 +14,13 @@
 
 ## 1. Vì sao Vuex cần modules?
 
+Mục này giải thích nguyên nhân sinh ra modules: Vuex chỉ cho một store duy nhất, app lớn thì file đó phình thành "cục bự không ai dám đụng" — nên phải chia ngăn. Đọc để hiểu vấn đề mà Pinia xử theo cách khác hẳn.
+
+Ví von: một nhà chỉ có một tủ quần áo chung — người nhiều thì phải chia "tủ con" và ghi biển tên (namespaced) để khỏi mặc nhầm áo nhau.
+
 Store Vuex chỉ có một — khi app lớn, mọi state/getter/mutation/action dồn vào một file hàng nghìn dòng. **Modules** chia store thành các phần độc lập:
 
-```js
-// ❌ Vuex 4 — legacy
-const cart = {
-  namespaced: true,        // ⭐ BẮT BUỘC nếu muốn gọi qua 'cart/...'
-  state: () => ({ items: [] }),
-  getters: { itemCount: (s) => s.items.length },
-  mutations: { add(s, item) { s.items.push(item) } },
-  actions: { checkout({ state, commit }) { /* ... */ } },
-}
-
-const user = {
-  namespaced: true,
-  state: () => ({ name: '' }),
-}
-
-export default createStore({
-  modules: { cart, user },
-})
-```
+> 📄 **Code ví dụ:** [`examples/01-1-vi-sao-vuex-can-modules.js`](examples/01-1-vi-sao-vuex-can-modules.js)
 
 ```
 root store
@@ -44,51 +30,29 @@ root store
 
 Gọi phải **kèm tên module**:
 
-```js
-store.state.cart.items            // state — lồng nhau
-store.getters['cart/itemCount']   // getter — dấu /
-store.commit('cart/add', item)    // mutation — 'module/mutation'
-store.dispatch('cart/checkout')   // action
-```
+> 📄 **Code ví dụ:** [`examples/02-1-vi-sao-vuex-can-modules.js`](examples/02-1-vi-sao-vuex-can-modules.js)
 
 > ⚠️ Quên `namespaced: true` → mutation/action của module **trộn lẫn với root** → gọi `commit('add')` cũng được, dễ xung đột tên giữa các module. Đây là một bẫy kinh điển của Vuex.
 
+> **Tóm gọn 1 câu:** Vuex cần modules vì chỉ có một store — phải chia ngăn trong tủ và dán biển tên (namespaced), quên dán là tên trộn lẫn nhau.
+
 ## 2. Pinia giải quyết cùng vấn đề thế nào?
+
+Mục này cho thấy "cách giải thoát": thay vì chia ngăn trong một tủ chung, Pinia phát cho mỗi domain một tủ riêng — khỏi cần biển tên, khỏi xung đột.
 
 Pinia **không có root store, không có modules** — mỗi domain là một store độc lập:
 
-```ts
-// ✅ stores/cart.ts (Pinia)
-export const useCartStore = defineStore('cart', () => {
-  const items = ref<Item[]>([])
-  const itemCount = computed(() => items.value.length)
-  function add(item: Item) { items.value.push(item) }
-  async function checkout() { /* ... */ }
-  return { items, itemCount, add, checkout }
-})
-```
+> 📄 **Code ví dụ:** [`examples/03-2-pinia-giai-quyet-cung-van-e-the.ts`](examples/03-2-pinia-giai-quyet-cung-van-e-the.ts)
 
-```ts
-// stores/user.ts — hoàn toàn độc lập
-export const useUserStore = defineStore('user', () => {
-  const name = ref('')
-  return { name }
-})
-```
+> 📄 **Code ví dụ:** [`examples/04-2-pinia-giai-quyet-cung-van-e-the.ts`](examples/04-2-pinia-giai-quyet-cung-van-e-the.ts)
 
-```vue
-<!-- component — gọi trực tiếp, không có tiền tố 'cart/' -->
-<script setup>
-import { useCartStore } from '@/stores/cart'
-
-const cart = useCartStore()
-cart.add(item)
-</script>
-```
+> 📄 **Code ví dụ:** [`examples/05-2-pinia-giai-quyet-cung-van-e-the.vue`](examples/05-2-pinia-giai-quyet-cung-van-e-the.vue)
 
 📌 **Không còn `namespaced`, không còn `cart/`** — dùng tên hàm như gọi hàm JavaScript bình thường. Vấn đề xung đột tên cũng biến mất vì store khác nhau, file khác nhau, tệp lớn tự chia module ES (`export`/`import`).
 
 ## 3. Bảng đối chiếu modules ↔ Pinia stores
+
+Mục này là "từ điển chuyển nhà": mỗi cấu trúc Vuex module tương ứng gì khi sang Pinia. Đọc dòng nào dịch dòng đó.
 
 | Vuex module | Pinia |
 |---|---|
@@ -100,7 +64,11 @@ cart.add(item)
 | `rootState`, `rootGetters` | Import trực tiếp store khác |
 | Register module động `registerModule` | `store.$id`... — Pinia cũng hỗ trợ store động hiếm gặp |
 
+> **Cách đọc bảng này:** cột trái là cách gọi trong Vuex module, cột phải là cách gọi ngắn hơn ở Pinia — dùng như bảng dịch khi migrate từng dòng code cũ.
+
 ## 4. Migration modules → Pinia
+
+Mục này là "kế hoạch chuyển nhà từng phòng": sơ đồ 6 bước dưới đây áp dụng cho từng module một, chứ không dọn cả nhà một lúc.
 
 Quy trình từng module một:
 
@@ -124,6 +92,8 @@ Chi tiết từng bước migration: [`8_pinia/VUEX-vs-PINIA.md`](../8_pinia/VUE
 - ✅ Dự án cũ có `modules: {...}` và `namespaced: true` — cần bảo trì hoặc migrate.
 - ✅ Hiểu tại sao Pinia không cần modules (lý do thiết kế).
 - ❌ Dự án mới: **không tạo cấu trúc "module" trong Pinia** — hãy tạo nhiều store nhỏ theo domain (cart, user, ui...).
+
+> **Tóm gọn 1 câu:** Vuex module là cách "chia ngăn trong một tủ chung"; Pinia cho mỗi domain một tủ riêng — migrate là chuyển từng module thành một file store.
 
 ## Nguồn tham khảo
 
